@@ -3,10 +3,7 @@ gridSize = 100;
 global grid
 grid = 2*ones(gridSize,gridSize);
 
-global originX
 originX = gridSize/2;
-
-global originY
 originY = gridSize/2;
 
 %Drying Probability Variables
@@ -19,10 +16,10 @@ grid(originX,originY) = 1;
 
 walkerRadius = 10;
 walkerTheta = 0;
-walkerdTheta = 2*pi/360;
+walkerdTheta = 0.1;
 
 %Main Loop
-while walkerTheta<4*pi
+while true
     %Get Initial Walker Point
     walkerX = floor(cos(walkerTheta)*walkerRadius);
     walkerY = floor(sin(walkerTheta)*walkerRadius);
@@ -36,43 +33,47 @@ end
 
 
 function out = walk(x,y)
+    originX = x;
+    originY = y;
     
     %While not attached Loop
     while true
-        %Move Walker randomly
-        direction = rand();
-        if direction < 0.25
-            x = x + 1;
-        elseif direction < 0.5
-            x = x - 1;
-        elseif direction < 0.75
-            y = y + 1;
-        else
-            y = y -1;
-        end
-
-        %Check if walker is in boundry
-        if ((x-originX)^2 + (y-originY)^2) > walkerRadius^2
-            %Ignore Walker, Move on to next
-            out = -1;
-            return
-        end
-
-        %Walker is in boundary, Check for frosting
-        didFrost = frostProbability(x,y);
-        if didFrost
-            grid(x,y) = 1;
-        end
-
-        %Drying in grid
-        calculateDrying(x,y);
-
-        %Return if frosted over
-        if didFrost
-            out = 1;
-            return;
-        end
+    %Move Walker randomly
+    direction = rand();
+    if direction < 0.25
+        x = x + 1;
+    elseif direction < 0.5
+        x = x - 1;
+    elseif direction < 0.75
+        y = y + 1;
+    else
+        y = y -1;
     end
+    
+    %Check if walker is in boundry
+    if ((x-seedX)^2 + (y-seedY)^2) > walkerRadius^2
+        %Ignore Walker, Move on to next
+        out = -1;
+        return
+    end
+    
+    %Walker is in boundary, Check for frosting
+    didFrost = frostProbability(x,y);
+    if didFrost
+        grid(x,y) = 1;
+    end
+    
+    %Drying in grid
+    calculateDrying(x,y);
+    
+    %Return if frosted over
+    if didFrost
+        out = 1;
+        return;
+    end
+    
+    end
+    
 end
 
 function out = calculateDrying(x,y)
