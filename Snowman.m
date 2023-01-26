@@ -1,5 +1,5 @@
 %Grid Variables
-gridSize = 11;
+gridSize = 51;
 
 global frostGrid
 frostGrid = 2*ones(gridSize,gridSize);
@@ -16,12 +16,12 @@ C = 1;
 %Set seed
 frostGrid(originX,originY) = 1;
 
-walkerRadius = 3;
+walkerRadius = 15;
 walkerTheta = 0;
 walkerdTheta = 2*pi/360;
 
 %Main Loop
-while walkerTheta<4*pi
+while walkerTheta<10*pi
     %Get Initial Walker Point
     walkerX = floor(cos(walkerTheta)*walkerRadius) + originX;
     walkerY = floor(sin(walkerTheta)*walkerRadius) + originY;
@@ -32,6 +32,9 @@ while walkerTheta<4*pi
     %Advanace Theta
     walkerTheta = walkerTheta + walkerdTheta;
 end
+
+imagesc(frostGrid)
+
 
 function out = walk(x,y,ox,oy,walkerRadius)
     global frostGrid
