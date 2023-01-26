@@ -1,42 +1,41 @@
 %Grid Variables
-gridSize = 100;
-global grid
-grid = 2*ones(gridSize,gridSize);
+gridSize = 11;
 
-global originX
-originX = gridSize/2;
+global frostGrid
+frostGrid = 2*ones(gridSize,gridSize);
 
-global originY
-originY = gridSize/2;
+originX = ceil(gridSize/2);
+
+originY = ceil(gridSize/2);
 
 %Drying Probability Variables
 R = 2^(0.5);
-C = 1
+C = 1;
 
 
 %Set seed
-grid(originX,originY) = 1;
+frostGrid(originX,originY) = 1;
 
-walkerRadius = 10;
+walkerRadius = 3;
 walkerTheta = 0;
 walkerdTheta = 2*pi/360;
 
 %Main Loop
 while walkerTheta<4*pi
     %Get Initial Walker Point
-    walkerX = floor(cos(walkerTheta)*walkerRadius);
-    walkerY = floor(sin(walkerTheta)*walkerRadius);
+    walkerX = floor(cos(walkerTheta)*walkerRadius) + originX;
+    walkerY = floor(sin(walkerTheta)*walkerRadius) + originY;
     
     %Walk Walker
-    walk(walkerX,walkerY);
+    walk(walkerX,walkerY,originX,originY,walkerRadius);
     
     %Advanace Theta
     walkerTheta = walkerTheta + walkerdTheta;
 end
 
+function out = walk(x,y,ox,oy,walkerRadius)
+    global frostGrid
 
-function out = walk(x,y)
-    
     %While not attached Loop
     while true
         %Move Walker randomly
@@ -52,16 +51,22 @@ function out = walk(x,y)
         end
 
         %Check if walker is in boundry
-        if ((x-originX)^2 + (y-originY)^2) > walkerRadius^2
+        if ((x-ox)^2 + (y-oy)^2) > walkerRadius^2
             %Ignore Walker, Move on to next
             out = -1;
+            fprintf("OUT OF BOUND\n");
             return
         end
 
         %Walker is in boundary, Check for frosting
         didFrost = frostProbability(x,y);
+        
+        
         if didFrost
-            grid(x,y) = 1;
+            fprintf("Frost" + didFrost+ "\n");
+            
+            frostGrid(x,y) = 1;
+            fprintf("Current: " + frostGrid(x,y)+"\n");
         end
 
         %Drying in grid
@@ -70,7 +75,7 @@ function out = walk(x,y)
         %Return if frosted over
         if didFrost
             out = 1;
-            return;
+            break;
         end
     end
 end
@@ -80,17 +85,19 @@ function out = calculateDrying(x,y)
 end
 
 function frostProb = frostProbability(x,y)
+	global frostGrid
+
     %Check for neightbor frost
     % TODO
     % Check that neighbors are in array
-    hasNeighbor = grid(x-1,y +1) == 1 || grid(x,y +1) == 1 ||... 
-    grid(x+1,y +1) == 1 || grid(x-1,y) == 1 ||grid(x+1,y) == 1 ||... 
-    grid(x-1,y -1) == 1 || grid(x,y-1) == 1 || grid(x+1,y -1) == 1;
+    hasNeighbor = frostGrid(x-1,y +1) == 1 || frostGrid(x,y +1) == 1 ||... 
+    frostGrid(x+1,y +1) == 1 || frostGrid(x-1,y) == 1 ||frostGrid(x+1,y) == 1 ||... 
+    frostGrid(x-1,y -1) == 1 || frostGrid(x,y-1) == 1 || frostGrid(x+1,y -1) == 1;
     
     if hasNeighbor
         %%have to change
-        frostProb = 1;
+        frostProb = true;
     else
-        frostProb = 0;
+        frostProb = false;
     end
 end
