@@ -37,11 +37,10 @@ while running
     
     %img = normalize(frostGrid,'range',[0 1]);
    % imshow(img,'InitialMagnification',800)
-    plt = pcolor(frostGrid)
+    ptpcolor(frostGrid)
     colormap cool
     shading interp
     pause(1e-16)
-    plt.LineWidth = 0.1;
 
     
     %Advanace Theta
