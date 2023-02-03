@@ -83,7 +83,7 @@ function out = walk(x,y,ox,oy,gridSize,radiusDelta)
         end
 
         %Check if walker is in boundry
-        if ((x-ox)^2 + (y-oy)^2) > walkerRadius^2
+        if ((x-ox)^2 + (y-oy)^2) > walkerRadius^2 || frostGrid(x,y) == 0 || frostGrid(x,y) == 1
             %Ignore Walker, Move on to next
             out = -1;
             if restartCount < maxRestart
@@ -99,8 +99,8 @@ function out = walk(x,y,ox,oy,gridSize,radiusDelta)
 
         %Walker is in boundary, Check for frosting
         didFrost = frostProbability(x,y);
-        
-        if didFrost            
+        compareProb = rand();
+        if didFrost > compareProb           
             frostGrid(x,y) = 1;
             
             distanceToRadius = pdist([ox,oy;x,y],'euclidean');
@@ -129,7 +129,18 @@ function out = walk(x,y,ox,oy,gridSize,radiusDelta)
     end
 end
 
-function out = calculateDrying(x,y)
+function out = calculateDrying(x,y,C,c1,c2,R)
+    global frostGrid
+    
+    frozenCoordinates = []
+    R = floor(R);
+    for i=-R:R
+        for j=-R:R
+            
+        end
+    end
+    
+    
     out = 1;
 end
 
@@ -145,8 +156,8 @@ function frostProb = frostProbability(x,y)
     
     if hasNeighbor
         %%have to change
-        frostProb = true;
+        frostProb = 0.5;
     else
-        frostProb = false;
+        frostProb = 0;
     end
 end

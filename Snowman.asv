@@ -37,10 +37,11 @@ while running
     
     %img = normalize(frostGrid,'range',[0 1]);
    % imshow(img,'InitialMagnification',800)
-    ptpcolor(frostGrid)
+    plt = pcolor(frostGrid)
     colormap cool
     shading interp
     pause(1e-16)
+    plt.LineWidth = 0.1;
 
     
     %Advanace Theta
@@ -82,7 +83,7 @@ function out = walk(x,y,ox,oy,gridSize,radiusDelta)
         end
 
         %Check if walker is in boundry
-        if ((x-ox)^2 + (y-oy)^2) > walkerRadius^2
+        if ((x-ox)^2 + (y-oy)^2) > walkerRadius^2 || frostGrid(x,y) == 0 || frostGrid(x,y) == 1
             %Ignore Walker, Move on to next
             out = -1;
             if restartCount < maxRestart
@@ -128,7 +129,18 @@ function out = walk(x,y,ox,oy,gridSize,radiusDelta)
     end
 end
 
-function out = calculateDrying(x,y)
+function out = calculateDrying(x,y,C,c1,c2,R)
+    global frostGrid
+    
+    frozenCoordinates = []
+    R = floor(R);
+    for i=-R:R
+        for j=-R:R
+            
+        end
+    end
+    
+    
     out = 1;
 end
 
