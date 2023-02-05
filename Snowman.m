@@ -3,6 +3,7 @@ clear;
 gridSize = 200;
 
 global frostGrid
+
 frostGrid = 2*ones(gridSize,gridSize);
 
 originX = ceil(gridSize/2);
@@ -58,7 +59,7 @@ end
 
 
 
-function out = walk(x,y,ox,oy,gridSize,radiusDelta)
+function out = walk(x,y,ox,oy,gridSize,radiusDelta,C)
     global frostGrid
     global walkerRadius
     global running
@@ -119,7 +120,7 @@ function out = walk(x,y,ox,oy,gridSize,radiusDelta)
         end
 
         %Drying in grid
-        calculateDrying(x,y);
+        calculateDrying(x,y,C);
 
         %Return if frosted over
         if didFrost
@@ -132,7 +133,6 @@ end
 function out = calculateDrying(x,y,C,c1,c2,R)
     global frostGrid
     
-    frozenCoordinates = []
     R = floor(R);
     for i=-R:R
         for j=-R:R

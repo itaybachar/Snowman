@@ -11,14 +11,14 @@ originX, originY = (GRID_SIZE//2,GRID_SIZE//2)
 
 #Simulation Variables
 R = math.sqrt(2)
-C = 1
+C = 0.01
 
 frostGrid[originY][originX] = 1
 frostGrowth.add((originX,originY))
 
 #walker Variables
-walkerRadius = 30
-walkerDelta = 3
+walkerRadius = 15
+walkerDelta = 1
 walkerThreashold = 0.8
 
 running = True
@@ -36,7 +36,24 @@ def getFrostProb(x,y):
 
 
 def calculateDrying():
-    return 1        
+    global frostGrid
+    c1 = 1
+    c2 = 10
+    for y in range(1,GRID_SIZE-1):
+        for x in range(1,GRID_SIZE-1):
+            delta = 0
+            if(frostGrid[y][x] == 2):
+                if((x+1,y) in frostGrowth) or ((x-1,y) in frostGrowth) or ((x,y+1) in frostGrowth) or ((x,y-1) in frostGrowth):
+                    delta = 1
+                if ((x+1,y-1) in frostGrowth) or (x-1,y-1) in frostGrowth or (x-1,y+1) in frostGrowth or (x,y+1) in frostGrowth:
+                    delta = R
+            prob = 0
+            if delta != 0:
+                prob =  C/(c1*delta+c2)
+            if(prob > random.random()):
+                frostGrid[y][x] = 0
+    draw()
+    
 
 def distanceToOriginSq(x,y):
     return (x-originX)**2 + (y-originY)**2
@@ -44,6 +61,7 @@ def distanceToOriginSq(x,y):
 def walk(x,y):
     global walkerRadius
     global running
+    global frostGrowth
     ox = x
     oy = y
     maxRestart = 0
@@ -91,6 +109,7 @@ def walk(x,y):
         if random.random() < frostProb:
             # print("stuck")
             frostGrid[y][x] = 1
+            frostGrowth.add((x,y))
             calculateDrying()
 
             if mag >= (walkerThreashold*walkerRadius)**2:
@@ -113,9 +132,11 @@ def drawCur(x,y):
     plt.clf()
     frostGrid[y][x] = tmp
 
-def draw(clear):
-    plt.imshow(frostGrid, interpolation='none')
+def draw(clear = True):
+    im = plt.imshow(frostGrid, interpolation='none')
+    plt.hot()
     plt.draw()
+    plt.colorbar(im)
     plt.pause(0.00001)
     if clear:
         plt.clf()
@@ -131,11 +152,12 @@ while running:
     walkerY = math.floor(math.sin(walkerTheta)*walkerRadius) + originY
     # print(walkerX,walkerY)
     walk(walkerX,walkerY)
-    # if itr % 5 == 0:
-    #     draw()
+    # if itr % 10 == 0:
+    #      draw()
 
     # itr +=1
 # draw(clear=False)
-plt.imshow(frostGrid, interpolation='none')
+im = plt.imshow(frostGrid, interpolation='none')
+plt.colorbar(im)
 plt.show()
     
