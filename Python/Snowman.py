@@ -11,13 +11,13 @@ originX, originY = (GRID_SIZE//2,GRID_SIZE//2)
 
 #Simulation Variables
 R = math.sqrt(2)
-C = 0.01
+C = 1
 
 frostGrid[originY][originX] = 1
 frostGrowth.add((originX,originY))
 
 #walker Variables
-walkerRadius = 15
+walkerRadius = 70
 walkerDelta = 1
 walkerThreashold = 0.8
 
@@ -110,7 +110,7 @@ def walk(x,y):
             # print("stuck")
             frostGrid[y][x] = 1
             frostGrowth.add((x,y))
-            calculateDrying()
+            # calculateDrying()
 
             if mag >= (walkerThreashold*walkerRadius)**2:
                 walkerRadius += walkerDelta
