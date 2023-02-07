@@ -1,11 +1,12 @@
 class Walker
 {
-  constructor(x, y)
+  constructor(x, y, dry = false)
   {
-    if (arguments.length == 2)
+    if (arguments.length >= 2)
     {
       this.pos = createVector(floor(x), floor(y));
       frostGrowth.add([floor(x), floor(y)])
+      this.dry = dry;
       this.stuck = true;
     } else
     {
@@ -72,7 +73,10 @@ class Walker
       fill(this.hu, 255, 100, 200);
     } else
     {
-      fill(360, 0, 255);
+      if (this.dry == true)
+        fill(360, 50, 200, 50);
+      else
+        fill(360, 0, 255);
     }
     ellipse(floor(this.pos.x * WALKER_SIZE), floor(this.pos.y * WALKER_SIZE), this.r * 2, this.r * 2);
   }
@@ -83,7 +87,6 @@ class Walker
   }
 
 }
-
 
 function randomPoint()
 {
@@ -117,9 +120,42 @@ function distSq(a, b)
 
 function calculateDrying()
 {
-  c1 = 1;
+  R1Sqrd = R1 * R1;
+  c1 = 100;
   c2 = 10;
   C = 0.1;
+  for (let y = 0; y < ROWS; y++)
+  {
+    for (let x = 0; x < COLS; x++)
+    {
+      //Get all points around x,y with radius R
+      //So we create a square, then see if the points is outside a circle
+      let totalDelta = 0;
+      for (let j = y - ceil(R1); j <= y + ceil(R1); j++)
+      {
+        for (let k = x - ceil(R1); k <= x + ceil(R1); k++)
+        {
+          //Check in circle
+          let distSqr = distSq(createVector(x, y), createVector(k, j));
+          if (distSqr <= R1Sqrd)
+          {
+            if (frostGrowth.has([k, j]))
+              totalDelta += distSqr;
+          }
+        }
+      }
+      if (totalDelta > 0)
+      {
+        //Dry
+        let dryProb = C / (c1 * totalDelta + c2);
+        if (random(1) < dryProb)
+        {
+          tree.push(new Walker(x, y, true))
+          drySpots.add([x, y]);
+        }
+      }
+    }
+  }
 
 }
 /*

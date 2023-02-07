@@ -1,6 +1,3 @@
-// Daniel Shiffman
-// https://thecodingtrain.com/CodingChallenges/034-dla
-
 //Grid Setup
 let WALKER_SIZE = 8;
 let WIDTH = undefined;
@@ -10,6 +7,7 @@ let ROWS = 0;
 
 let tree = [];
 let frostGrowth = new TupleSet();
+let drySpots = new TupleSet();
 let walkers = [];
 //var r = 4;
 let maxWalkers = 50;
@@ -19,6 +17,9 @@ let hu = 0;
 let shrink = 0.995;
 
 let totalWalkerCount = 0;
+
+//Drying
+let R1 = 1.4142135623730951
 
 function setup()
 {
@@ -62,8 +63,9 @@ function draw()
       if (walkers[i].checkStuck(tree))
       {
         //Drying
+        calculateDrying();
         walkers[i].setHue(hu % 360);
-        hu += 2;
+        // hu += 2;
         frostGrowth.add(walkers[i].getSetForm())
         tree.push(walkers[i]);
         walkers.splice(i, 1);
