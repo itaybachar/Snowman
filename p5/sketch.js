@@ -1,7 +1,15 @@
 // Daniel Shiffman
 // https://thecodingtrain.com/CodingChallenges/034-dla
 
+//Grid Setup
+let WALKER_SIZE = 8;
+let WIDTH = undefined;
+let HEIGHT = undefined;
+let COLS = 0;
+let ROWS = 0;
+
 let tree = [];
+let frostGrowth = new TupleSet();
 let walkers = [];
 //var r = 4;
 let maxWalkers = 50;
@@ -10,17 +18,25 @@ let radius = 8;
 let hu = 0;
 let shrink = 0.995;
 
+let totalWalkerCount = 0;
+
 function setup()
 {
-  createCanvas(windowWidth, windowHeight);
-  colorMode(HSB);
+  WIDTH = windowWidth;
+  HEIGHT = windowHeight;
 
-  tree[0] = new Walker(width / 2, height / 2);
-  radius *= shrink;
+  createCanvas(WIDTH, HEIGHT);
+  colorMode(HSB);
+  COLS = floor(WIDTH / (WALKER_SIZE))
+  ROWS = floor(HEIGHT / (WALKER_SIZE))
+
+  tree[0] = new Walker(COLS / 2, ROWS / 2);
+  // radius *= shrink;
   for (var i = 0; i < maxWalkers; i++)
   {
     walkers[i] = new Walker();
-    radius *= shrink;
+    totalWalkerCount++;
+    // radius *= shrink;
   }
 }
 
@@ -48,17 +64,18 @@ function draw()
         //Drying
         walkers[i].setHue(hu % 360);
         hu += 2;
+        frostGrowth.add(walkers[i].getSetForm())
         tree.push(walkers[i]);
         walkers.splice(i, 1);
       }
     }
   }
 
-  var r = walkers[walkers.length - 1].r;
-  while (walkers.length < maxWalkers && radius > 1)
+  // var r = walkers[walkers.length - 1].r;
+  while (walkers.length < maxWalkers && totalWalkerCount < 800)
   {
-    radius *= shrink;
+    // radius *= shrink;
     walkers.push(new Walker());
+    totalWalkerCount++;
   }
-
 }
