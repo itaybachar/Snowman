@@ -1,25 +1,25 @@
 //Grid Setup
-let WALKER_SIZE = 8;
+let WALKER_SIZE = 4;
 let WIDTH = undefined;
 let HEIGHT = undefined;
 let COLS = 0;
 let ROWS = 0;
 
 let tree = [];
+let dry = [];
 let frostGrowth = new TupleSet();
 let drySpots = new TupleSet();
 let walkers = [];
 //var r = 4;
 let maxWalkers = 50;
-let iterations = 1000;
+let iterations = 100;
 let radius = 8;
-let hu = 0;
 let shrink = 0.995;
 
 let totalWalkerCount = 0;
 
 //Drying
-let R1 = 1.4142135623730951
+let R1 = 3;
 
 function setup()
 {
@@ -27,7 +27,6 @@ function setup()
   HEIGHT = windowHeight;
 
   createCanvas(WIDTH, HEIGHT);
-  colorMode(HSB);
   COLS = floor(WIDTH / (WALKER_SIZE))
   ROWS = floor(HEIGHT / (WALKER_SIZE))
 
@@ -43,7 +42,11 @@ function setup()
 
 function draw()
 {
-  background(0);
+  background(217, 241, 255);
+  for (let i = 0; i < dry.length; i++)
+  {
+    dry[i].show();
+  }
 
   for (let i = 0; i < tree.length; i++)
   {
@@ -57,24 +60,25 @@ function draw()
 
   for (let n = 0; n < iterations; n++)
   {
+    flag = false;
     for (let i = walkers.length - 1; i >= 0; i--)
     {
       walkers[i].walk();
-      if (walkers[i].checkStuck(tree))
+      if (walkers[i].checkStuck())
       {
+        flag = true;
         //Drying
-        calculateDrying();
-        walkers[i].setHue(hu % 360);
-        // hu += 2;
+        walkers[i].setColor(color(1, 1, 1));
         frostGrowth.add(walkers[i].getSetForm())
         tree.push(walkers[i]);
         walkers.splice(i, 1);
       }
     }
+    if (flag)
+      calculateDrying();
   }
 
-  // var r = walkers[walkers.length - 1].r;
-  while (walkers.length < maxWalkers && totalWalkerCount < 800)
+  while (walkers.length < maxWalkers && totalWalkerCount < 400)
   {
     // radius *= shrink;
     walkers.push(new Walker());

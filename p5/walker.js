@@ -5,15 +5,18 @@ class Walker
     if (arguments.length >= 2)
     {
       this.pos = createVector(floor(x), floor(y));
-      frostGrowth.add([floor(x), floor(y)])
-      this.dry = dry;
+      if (!dry)
+        frostGrowth.add([floor(x), floor(y)])
       this.stuck = true;
     } else
     {
       this.pos = randomPoint();
       this.stuck = false;
     }
+    this.dry = dry;
     this.r = WALKER_SIZE / 2;
+    if (dry)
+      this.r -= constrain(this.r - 1, 1, this.r);
   }
 
   walk()
@@ -22,12 +25,14 @@ class Walker
     // var vel = p5.Vector.random2D();
     var vel = createVector(random([-1, 1, 0]), random([-1, 1, 0]));
     this.pos.add(vel);
+    if (frostGrowth.has(this.getSetForm()) || drySpots.has(this.getSetForm()))
+      this.pos.sub(vel)
     // console.log(vel)
     this.pos.x = constrain(this.pos.x, 0, COLS);
     this.pos.y = constrain(this.pos.y, 0, ROWS);
   }
 
-  checkStuck(others)
+  checkStuck()
   {
     if (frostGrowth.has([this.pos.x - 1, this.pos.y - 1]) ||
       frostGrowth.has([this.pos.x, this.pos.y - 1]) ||
@@ -39,51 +44,49 @@ class Walker
       frostGrowth.has([this.pos.x + 1, this.pos.y + 1]))
     {
       //Add sticking probability
-      if (random(1) < 0.5)
+      if (random(1) < 1)
       {
         this.stuck = true;
         return true;
       }
-    }
-    return false;
-    for (var i = 0; i < others.length; i++)
-    {
-      let d = distSq(this.pos, others[i].pos);
-      if (d < 2)
-      {
-        if (random(1) < 1)
-          //Add sticking probability
-          this.stuck = true;
-        return true;
-      }
+      else
+        return false;
     }
     return false;
   }
 
-  setHue(hu)
+  setColor(c)
   {
-    this.hu = hu;
+    this.c = c;
   }
 
   show()
   {
     noStroke();
-    if (this.stuck && typeof this.hu !== 'undefined')
+    if (this.stuck && typeof this.c !== 'undefined')
     {
-      fill(this.hu, 255, 100, 200);
+      if (this.dry)//Dry
+        this.c = color(43, 0, 122);
+      else//Frozen
+      {
+        stroke(0);
+        strokeWeight(0.5);
+        this.c = color(107, 211, 255);
+      }
+      fill(this.c);
     } else
-    {
-      if (this.dry == true)
-        fill(360, 50, 200, 50);
+    {//Seed
+      if (this.stuck)
+        fill(30, 30, 30);
       else
-        fill(360, 0, 255);
+        fill(255, 255, 255);
     }
     ellipse(floor(this.pos.x * WALKER_SIZE), floor(this.pos.y * WALKER_SIZE), this.r * 2, this.r * 2);
   }
 
   getSetForm()
   {
-    return [floor(this.pos.x), floor(this.pos.y)];
+    return [this.pos.x, this.pos.y];
   }
 
 }
@@ -121,42 +124,46 @@ function distSq(a, b)
 function calculateDrying()
 {
   R1Sqrd = R1 * R1;
-  c1 = 100;
+  c1 = 1;
   c2 = 10;
   C = 0.1;
   for (let y = 0; y < ROWS; y++)
   {
     for (let x = 0; x < COLS; x++)
     {
-      //Get all points around x,y with radius R
-      //So we create a square, then see if the points is outside a circle
-      let totalDelta = 0;
-      for (let j = y - ceil(R1); j <= y + ceil(R1); j++)
+      if (!frostGrowth.has([x, y]) && !drySpots.has([x, y]))
       {
-        for (let k = x - ceil(R1); k <= x + ceil(R1); k++)
+        //Get all points around x,y with radius R
+        //So we create a square, then see if the points is outside a circle
+        let totalProbability = 0;
+        for (let j = y - ceil(R1); j <= y + ceil(R1); j++)
         {
-          //Check in circle
-          let distSqr = distSq(createVector(x, y), createVector(k, j));
-          if (distSqr <= R1Sqrd)
+          for (let k = x - ceil(R1); k <= x + ceil(R1); k++)
           {
-            if (frostGrowth.has([k, j]))
-              totalDelta += distSqr;
+            //Check in circle
+            let distSqr = distSq(createVector(x, y), createVector(k, j));
+            if (distSqr <= R1Sqrd)
+            {
+              if (frostGrowth.has([k, j]))
+                totalProbability += C / (c1 * distSqr + c2);
+            }
           }
         }
-      }
-      if (totalDelta > 0)
-      {
-        //Dry
-        let dryProb = C / (c1 * totalDelta + c2);
-        if (random(1) < dryProb)
+
+        if (totalProbability > 0)
         {
-          tree.push(new Walker(x, y, true))
-          drySpots.add([x, y]);
+          //Dry
+          if (random(1) < totalProbability)
+          {
+            let w = new Walker(x, y, true)
+            w.setColor(color(2, 2, 2));
+            dry.push(w)
+            drySpots.add([x, y]);
+          }
         }
       }
     }
   }
-
 }
 /*
 def calculateDrying():
