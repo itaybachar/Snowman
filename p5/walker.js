@@ -123,10 +123,12 @@ function distSq(a, b)
 
 function calculateDrying()
 {
+  R1 = R1_slider.value();
+  c1 = c1_slider.value();
+  c2 = c2_slider.value();
+  C = C_slider.value();
+
   R1Sqrd = R1 * R1;
-  c1 = 1;
-  c2 = 10;
-  C = 0.1;
   for (let y = 0; y < ROWS; y++)
   {
     for (let x = 0; x < COLS; x++)
