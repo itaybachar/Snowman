@@ -12,7 +12,7 @@ let drySpots = new TupleSet();
 let walkers = [];
 //var r = 4;
 let maxWalkers = 50;
-let iterations = 100;
+let iterations = 150;
 let radius = 8;
 let shrink = 0.995;
 
@@ -20,6 +20,7 @@ let totalWalkerCount = 0;
 
 //Drying
 let C_slider, c1_slider, c2_slider, restartButton, R1_slider, totalWalker_slider;
+let C = 0;// Range of C is 0-10, 0 is 100% humidity, 10 is 0%
 
 function setup()
 {
@@ -31,6 +32,8 @@ function setup()
   ROWS = floor(HEIGHT / (WALKER_SIZE))
 
   tree[0] = new Walker(COLS / 2, ROWS / 2);
+  // tree[1] = new Walker(COLS / 4, ROWS / 4);
+
   // radius *= shrink;
   for (var i = 0; i < maxWalkers; i++)
   {
@@ -40,8 +43,8 @@ function setup()
   }
 
   // create sliders
-  C_slider = createSlider(0.01, 10, 0.1, 0.01);
-  C_slider.position(20, 10);
+  // C_slider = createSlider(0.01, 10, 0.1, 0.01);
+  // C_slider.position(20, 10);
   c1_slider = createSlider(0, 10, 1, 0.1);
   c1_slider.position(20, 20);
   c2_slider = createSlider(0, 100, 10, 0.1);
@@ -52,8 +55,7 @@ function setup()
   totalWalker_slider = createSlider(100, 2500, 400, 1);
   totalWalker_slider.position(20, 50);
 
-
-  C_slider.style('width', '50px');
+  // C_slider.style('width', '50px');
   c1_slider.style('width', '50px');
   c2_slider.style('width', '50px');
   R1_slider.style('width', '50px');
@@ -74,7 +76,10 @@ function draw()
 {
   background(217, 241, 255);
   fill(0);
-  text('C: ' + C_slider.value(), C_slider.x * 1.5 + C_slider.width, C_slider.y + 10);
+  noStroke();
+  // text('C: ' + C_slider.value(), C_slider.x * 1.5 + C_slider.width, C_slider.y + 10);
+  text('C: ' + C, 20 * 1.5, 10 + 10);
+
   text('C1: ' + c1_slider.value(), c1_slider.x * 1.5 + c1_slider.width, c1_slider.y + 10);
   text('C2: ' + c2_slider.value(), c2_slider.x * 1.5 + c2_slider.width, c2_slider.y + 10);
   text('R1: ' + R1_slider.value(), R1_slider.x * 1.5 + R1_slider.width, R1_slider.y + 10);
@@ -111,8 +116,8 @@ function draw()
         walkers.splice(i, 1);
       }
     }
-    if (flag)
-      calculateDrying();
+    // if (flag)
+    //   calculateDrying();
   }
 
   while (walkers.length < maxWalkers && totalWalkerCount < totalWalker_slider.value())

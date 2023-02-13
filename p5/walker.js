@@ -16,7 +16,7 @@ class Walker
     this.dry = dry;
     this.r = WALKER_SIZE / 2;
     if (dry)
-      this.r -= constrain(this.r - 1, 1, this.r);
+      this.r = constrain(this.r - 1, 1, this.r);
   }
 
   walk()
@@ -44,9 +44,11 @@ class Walker
       frostGrowth.has([this.pos.x + 1, this.pos.y + 1]))
     {
       //Add sticking probability
-      if (random(1) < 1)
+      if (random(1) < getFrostProbability(this.pos.x, this.pos.y))
       {
         this.stuck = true;
+        //Update humidity
+        // updateHumidity();
         return true;
       }
       else
@@ -126,7 +128,7 @@ function calculateDrying()
   R1 = R1_slider.value();
   c1 = c1_slider.value();
   c2 = c2_slider.value();
-  C = C_slider.value();
+  // C = C_slider.value();
 
   R1Sqrd = R1 * R1;
   for (let y = 0; y < ROWS; y++)
