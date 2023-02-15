@@ -16,7 +16,7 @@ class Walker
     this.dry = dry;
     this.r = WALKER_SIZE / 2;
     if (dry)
-      this.r = constrain(this.r - 1, 1, this.r);
+      this.r = constrain(this.r - 1, 0.5, this.r);
   }
 
   walk()
@@ -28,31 +28,47 @@ class Walker
     if (frostGrowth.has(this.getSetForm()) || drySpots.has(this.getSetForm()))
       this.pos.sub(vel)
     // console.log(vel)
+    //Constrain To Circle
+    //Add if statement to see if spawnRadius could grow
+    this.pos.x = constrain(this.pos.x, seed.x - spawnRadius, seed.x + spawnRadius)
+    this.pos.y = constrain(this.pos.y, seed.y - spawnRadius, seed.y + spawnRadius)
+
+    //Constrain To Grid:
     this.pos.x = constrain(this.pos.x, 0, COLS);
     this.pos.y = constrain(this.pos.y, 0, ROWS);
   }
 
   checkStuck()
   {
-    if (frostGrowth.has([this.pos.x - 1, this.pos.y - 1]) ||
+    if (
+      // frostGrowth.has([this.pos.x - 1, this.pos.y - 1]) ||
       frostGrowth.has([this.pos.x, this.pos.y - 1]) ||
-      frostGrowth.has([this.pos.x + 1, this.pos.y - 1]) ||
+      // frostGrowth.has([this.pos.x + 1, this.pos.y - 1]) ||
       frostGrowth.has([this.pos.x - 1, this.pos.y]) ||
       frostGrowth.has([this.pos.x + 1, this.pos.y]) ||
-      frostGrowth.has([this.pos.x - 1, this.pos.y + 1]) ||
-      frostGrowth.has([this.pos.x, this.pos.y + 1]) ||
-      frostGrowth.has([this.pos.x + 1, this.pos.y + 1]))
+      // frostGrowth.has([this.pos.x - 1, this.pos.y + 1]) ||
+      frostGrowth.has([this.pos.x, this.pos.y + 1])) //||
+    // frostGrowth.has([this.pos.x + 1, this.pos.y + 1]))
     {
-      //Add sticking probability
-      if (random(1) < getFrostProbability(this.pos.x, this.pos.y))
+
+      if (!hasHoles(this.pos))
       {
-        this.stuck = true;
-        //Update humidity
-        // updateHumidity();
-        return true;
+        //Add sticking probability
+        if (random(1) < getFrostProbability(this.pos.x, this.pos.y))
+        {
+          this.stuck = true;
+
+          if (distSq(this.pos, seed) >= 0.8 * spawnRadius * spawnRadius)
+          {
+            spawnRadius = constrain(spawnRadius + 2, spawnRadius, Math.min(seed.x, seed.y));
+          }
+          //Update humidity
+          // updateHumidity();
+          return true;
+        }
+        else
+          return false;
       }
-      else
-        return false;
     }
     return false;
   }
@@ -68,12 +84,18 @@ class Walker
     if (this.stuck && typeof this.c !== 'undefined')
     {
       if (this.dry)//Dry
+      {
         this.c = color(43, 0, 122);
+        this.c.setAlpha(50);
+
+      }
       else//Frozen
       {
         stroke(0);
         strokeWeight(0.5);
-        this.c = color(107, 211, 255);
+        this.c = color(87, 191, 235);
+        this.c = color(0, 0, 139);
+
       }
       fill(this.c);
     } else
@@ -95,6 +117,13 @@ class Walker
 
 function randomPoint()
 {
+  //Spawn in a circle
+  angle = random(Math.PI * 2);
+  let x = floor(Math.cos(angle) * spawnRadius + seed.x);
+  let y = floor(Math.sin(angle) * spawnRadius + seed.y);
+  return createVector(x, y);
+  //Spawn on Edges
+  /*
   var i = floor(random(4));
 
   if (i === 0)
@@ -114,6 +143,7 @@ function randomPoint()
     let y = floor(random(ROWS));
     return createVector(COLS - 1, y);
   }
+  */
 }
 
 function distSq(a, b)
@@ -169,22 +199,24 @@ function calculateDrying()
     }
   }
 }
-/*
-def calculateDrying():
-    global frostGrid
-    c1 = 1
-    c2 = 10
-    for y in range(1,GRID_SIZE-1):
-        for x in range(1,GRID_SIZE-1):
-            delta = 0
-            if(frostGrid[y][x] == 2):
-                if((x+1,y) in frostGrowth) or ((x-1,y) in frostGrowth) or ((x,y+1) in frostGrowth) or ((x,y-1) in frostGrowth):
-                    delta = 1
-                if ((x+1,y-1) in frostGrowth) or (x-1,y-1) in frostGrowth or (x-1,y+1) in frostGrowth or (x,y+1) in frostGrowth:
-                    delta = R
-            prob = 0
-            if delta != 0:
-                prob =  C/(c1*delta+c2)
-            if(prob > random.random()):
-                frostGrid[y][x] = 0
-*/
+
+function hasHoles(pos)
+{
+  //go around the point(3 by 3) and find all the "flips"
+  deltax = [0, -1, -1, -1, 0, 1, 1, 1]
+  deltay = [1, 1, 0, -1, -1, -1, 0, 1]
+
+  flipCount = 0;
+  prevCon = curCon = frostGrowth.has([pos.x + 1, pos.y + 1]);
+  for (let index = 0; index < 8; index++)
+  {
+    curCon = frostGrowth.has([pos.x + deltax[index], pos.y + deltay[index]]);
+    if (prevCon != curCon)
+    {
+      flipCount++;
+    }
+    prevCon = curCon;
+  }
+  //Get points around  potential stick in a clockwise manner
+  return flipCount > 3;
+}

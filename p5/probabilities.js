@@ -1,5 +1,5 @@
-A = 12;
-B = 5;
+A = 2;
+B = 0.5;
 L = 9;
 function getFrostProbability(x, y)
 {
@@ -16,7 +16,7 @@ function getFrostProbability(x, y)
 
     minVal = .01;
     p = A * (Ni / L / L - (L - 1) / 2 / L) + B;
-    console.log("Prob: " + p)
+    // console.log("Prob: " + p)
     if (p < minVal)
     {
         p = minVal;
