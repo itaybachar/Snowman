@@ -14,7 +14,7 @@
 
 // Frosting Node -> Frode
 typedef struct Frode{
-    char humidity; // 255 is highest hummidty possible, 0 is lowest relative humidity
+    unsigned char humidity; // 255 is highest hummidty possible, 0 is lowest relative humidity
     char state;   // current state of node
     char friegh; // frozen neighbors -> freigh, max 8
 } Frode;
@@ -38,7 +38,7 @@ double genprob(double max){
 
 
 // Allocates square plate of length len with an attribute humidity 
-Frode** allocplate(int len, char hum){
+Frode** allocplate(int len, unsigned char hum){
     Frode **t;
 
     t = (Frode **) malloc(sizeof(Frode *) * len);
@@ -82,8 +82,8 @@ int flu_freeze(Frode node){
 
 int main(int argc, char**argv){
     // inputs are temp and humidity
-    char temp = atoi(argv[1]);
-    char humidity = atoi(argv[2]);
+    int temp = atoi(argv[1]);
+    int humidity = atoi(argv[2]);
     int side_len = atoi(argv[3]);
 
     Frode** plate = allocplate(side_len, humidity);
