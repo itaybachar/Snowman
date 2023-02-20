@@ -1,7 +1,9 @@
 // This is just experimenting with the model Yousef and Nalby thought about
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 // States of nodes
+#define DRY 0
 #define WET 1
 #define FROZEN 2
 
@@ -37,8 +39,20 @@ Frode** allocplate(int len, char hum){
 }
 
 // To be implemented
-int indep_freeze(int tempp); // independent freezing of nodes
-int flu_freeze(Frode* node); // influenced freezing of nodes
+
+// independent freezing of nodes
+int indep_freeze(int temp){
+    time_t t;
+    srand((unsigned) time(&t));
+
+    double p = 11.6379+temp*0.362419;
+    double prob = 1/(1+exp(p));
+    float chance = (float)rand()/(float)(RAND_MAX);
+    return (chance < prob);
+}
+
+// influenced freezing of nodes
+int flu_freeze(Frode* node); 
 
 
 int main(int argc, char**argv){
