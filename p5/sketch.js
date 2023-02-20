@@ -18,20 +18,28 @@ let shrink = 0.995;
 
 let totalWalkerCount = 0;
 
+//Spawning
+let spawnRadius = 15;
+let seed = undefined;
+
 //Drying
 let C_slider, c1_slider, c2_slider, restartButton, R1_slider, totalWalker_slider;
-let C = 0;// Range of C is 0-10, 0 is 100% humidity, 10 is 0%
+let C = 0.1;// Range of C is 0-10, 0 is 100% humidity, 10 is 0%
 
 function setup()
 {
   WIDTH = windowWidth;
   HEIGHT = windowHeight;
+  WIDTH = 1000;
+  HEIGHT = 1000;
 
   createCanvas(WIDTH, HEIGHT);
   COLS = floor(WIDTH / (WALKER_SIZE))
   ROWS = floor(HEIGHT / (WALKER_SIZE))
 
-  tree[0] = new Walker(COLS / 2, ROWS / 2);
+  seed = createVector(floor(COLS / 2), floor(ROWS / 2));
+
+  tree[0] = new Walker(seed.x, seed.y);
   // tree[1] = new Walker(COLS / 4, ROWS / 4);
 
   // radius *= shrink;
@@ -52,7 +60,7 @@ function setup()
 
   R1_slider = createSlider(Math.sqrt(2), 10, Math.sqrt(2), 0.1);
   R1_slider.position(20, 40);
-  totalWalker_slider = createSlider(100, 2500, 400, 1);
+  totalWalker_slider = createSlider(100, ROWS * COLS, 400, 1);
   totalWalker_slider.position(20, 50);
 
   // C_slider.style('width', '50px');
@@ -85,6 +93,10 @@ function draw()
   text('R1: ' + R1_slider.value(), R1_slider.x * 1.5 + R1_slider.width, R1_slider.y + 10);
   text('Total Walkers: ' + totalWalker_slider.value(), totalWalker_slider.x * 1.5 + totalWalker_slider.width, totalWalker_slider.y + 10);
 
+  noFill();
+  stroke(color(255, 0, 0));
+  circle(floor(seed.x * WALKER_SIZE), floor(seed.y * WALKER_SIZE), spawnRadius * WALKER_SIZE);
+
   for (let i = 0; i < dry.length; i++)
   {
     dry[i].show();
@@ -116,8 +128,8 @@ function draw()
         walkers.splice(i, 1);
       }
     }
-    // if (flag)
-    //   calculateDrying();
+    if (flag)
+      calculateDrying();
   }
 
   while (walkers.length < maxWalkers && totalWalkerCount < totalWalker_slider.value())
