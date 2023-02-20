@@ -1,8 +1,10 @@
 // This is just experimenting with the model Yousef and Nalby thought about
+// this is for the rand_s function
+#define _CRT_RAND_S
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
+#include <limits.h>
 // States of nodes
 #define DRY 0
 #define WET 1
@@ -20,6 +22,18 @@ void prode(Frode** plate, int i, int j){
     Frode temp = plate[i][j];
     printf("Frode (%i,%i)\nHumid:\t%i\nState:\t%i\nFreis:\t%i\n\n", i, j, temp.humidity, temp.state, temp.friegh); 
 }
+
+// Produces random double from [0,max)
+double genprob(double max){
+    unsigned int number;
+    errno_t err;
+    err = rand_s( &number );
+    if (err != 0) {
+        printf("The rand_s function failed!\n");
+    }
+     return (double) number /((double) UINT_MAX + 1) * max;
+}
+
 
 // Allocates square plate of length len with an attribute humidity 
 Frode** allocplate(int len, char hum){
@@ -41,28 +55,23 @@ Frode** allocplate(int len, char hum){
 
 // independent freezing of nodes
 int indep_freeze(int temp){
-    time_t t;
-    srand((unsigned) time(&t));
-
     double p = 11.6379+temp*0.362419;
     double prob = 1/(1+exp(p));
 
-    double chance = (double)rand()/(double)(RAND_MAX);
+    double chance = genprob(1.0);
 
     return (chance < prob);
 }
 
 // influenced freezing of nodes, runs on WET nodes
 int flu_freeze(Frode node){
-    time_t t;
-    srand((unsigned) time(&t));
 
     // prob is reduced if there are multiple freighs (multiple ice bridges being made)
     double prob = ((double)(node.humidity))/(255.0 * node.friegh);
     printf("Prob:\t%f\n", prob);
 
-    // this shit fucked, gotta fix (biased)
-    double chance = ((double)rand())/((double)(RAND_MAX));
+
+    double chance = genprob(1.0);
     printf("Chance:\t%f\n", chance);
 
     return (chance < prob);
