@@ -1,6 +1,8 @@
 // This is just experimenting with the model Yousef and Nalby thought about
-// this is for the rand_s function
+
+// this macro is for the rand_s function
 #define _CRT_RAND_S
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
