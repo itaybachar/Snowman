@@ -148,6 +148,13 @@ void freezing(Plate* plate, char temp, char humidity, int len){
     switchplates(plate);
 }
 
+void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter){
+    for (int i = 0; i < iter; i++)
+    {
+        freezing(plate, temp, humidity, len);
+    }
+}
+
 // Print current state of plate (curr, prev)
 void prstate(Plate* plate, int len){
     for(int i = 0; i < len; i++){
@@ -192,15 +199,13 @@ int main(int argc, char**argv){
     // Frode** plate = allocplate(side_len, humidity);
 
 
-    prode(plate, 10, 15);
+    // prode(plate, 10, 15);
 
     // Frode* p = &plate[22][25];
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
     prstate(&plate, side_len);
-    freezing(&plate, temp, humidity, side_len);
-    prstate(&plate, side_len); 
-    freezing(&plate, temp, humidity, side_len);
+    iterfreeze(&plate, temp, humidity, side_len, 5);
     prstate(&plate, side_len); 
 }
 
