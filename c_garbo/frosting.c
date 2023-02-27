@@ -22,9 +22,14 @@ typedef struct Frode{
     char friegh; // frozen neighbors -> freigh, max 8
 } Frode;
 
+typedef struct Plate{
+    Frode ** curr;
+    Frode ** prev;
+} Plate;
+
 // prints given Frode
-void prode(Frode** plate, int i, int j){
-    Frode temp = plate[i][j];
+void prode(Plate plate, int i, int j){
+    Frode temp = plate.curr[i][j];
     printf("Frode (%i,%i)\nHumid:\t%i\nState:\t%i\nFreis:\t%i\n\n", i, j, temp.humidity, temp.state, temp.friegh); 
 }
 
@@ -83,60 +88,77 @@ int flu_freeze(Frode node){
     return (chance < prob);
 } 
 
+void switchplates(Plate* plate){
+    Frode ** temp = plate->curr;
+    plate->curr = plate->prev;
+    plate->prev = temp;
+}
+
 // add frozen neighbor to neighbors of recently frozen nodes
-void addFreigh(Frode** plate, int i, int j, int len){
+void addFreigh(Plate * plate, int i, int j, int len){
     for (int k  = i-1; k < i+2; k++){
         if (k<0 || k>=len) continue;
 
         for (int m = j-1; m < j+2; m++){
             if (m<0 || m>=len) continue;
 
-            if(!(k==i && m==j)) plate[k][m].friegh++;
+            if(!(k==i && m==j)) plate->prev[k][m].friegh++;
         }
     }
     
 }
 
-void freezing(Frode** plate, char temp, char humidity, int len){
+void freezing(Plate* plate, char temp, char humidity, int len){
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
-            Frode cpy = plate[i][j];
+            Frode cpy = plate->curr[i][j];
             if(cpy.state == WET){
-                // remove humidity boolean
+                // remove humidity boolean (also acts as a "did node freeze?" bool)
                 int remHum = 0;
 
+                // ONLY WRITE TO PREV MATRIX, ONLY READ FROM CURR MATRIX
                 if(indep_freeze(temp)){
-                    plate[i][j].state = FROZEN;
+                    plate->prev[i][j].state = FROZEN;
                     addFreigh(plate, i, j, len);
                     remHum = 1;
                 }
 
                 if(!remHum && cpy.friegh){
                     if(flu_freeze(cpy)){
-                        plate[i][j].state = FROZEN;
+                        plate->prev[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
                     }else{
-                        plate[i][j].state = DRY;
+                        plate->prev[i][j].state = DRY;
                     }
                     remHum = 1;
                 }
 
                 if(remHum){
-                    AHUM -= plate[i][j].humidity;
-                    plate[i][j].humidity = 0;
+                    AHUM -= plate->curr[i][j].humidity;
+                    plate->prev[i][j].humidity = 0;
+                }else{
+                    plate->prev[i][j].state = plate->curr[i][j].state;
                 }
+            }else{
+                plate->prev[i][j].state = plate->curr[i][j].state;
             }
         }
     }
+
+    switchplates(plate);
 }
 
-// Print current state of plate
-void prstate(Frode ** plate, int len){
+// Print current state of plate (curr, prev)
+void prstate(Plate* plate, int len){
     for(int i = 0; i < len; i++){
-        for(int j = 0; j < len; j++){
+        for(int j = 0; j < 2*len; j++){
             char c;
 
-            switch (plate[i][j].state)
+            if(j == len) printf(" ");
+            Frode ** whichPlate = (j < len)?plate->curr:plate->prev;
+            int m = (j < len)?j:j-len;
+
+            switch (whichPlate[i][m].state)
             {
                 case DRY:
                     c = 'X';
@@ -164,7 +186,10 @@ int main(int argc, char**argv){
 
     AHUM = side_len*side_len*humidity;
 
-    Frode** plate = allocplate(side_len, humidity);
+    Plate plate;
+    plate.curr = allocplate(side_len, humidity);
+    plate.prev = allocplate(side_len, humidity);
+    // Frode** plate = allocplate(side_len, humidity);
 
 
     prode(plate, 10, 15);
@@ -172,10 +197,10 @@ int main(int argc, char**argv){
     // Frode* p = &plate[22][25];
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
-    prstate(plate, side_len);
-    freezing(plate, temp, humidity, side_len);
-    prstate(plate, side_len);
-    freezing(plate, temp, humidity, side_len);
-    prstate(plate, side_len);
+    prstate(&plate, side_len);
+    freezing(&plate, temp, humidity, side_len);
+    prstate(&plate, side_len); 
+    freezing(&plate, temp, humidity, side_len);
+    prstate(&plate, side_len); 
 }
 
