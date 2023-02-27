@@ -83,6 +83,7 @@ int flu_freeze(Frode node){
     return (chance < prob);
 } 
 
+// add frozen neighbor to neighbors of recently frozen nodes
 void addFreigh(Frode** plate, int i, int j, int len){
     for (int k  = i-1; k < i+2; k++){
         if (k<0 || k>=len) continue;
@@ -90,7 +91,7 @@ void addFreigh(Frode** plate, int i, int j, int len){
         for (int m = j-1; m < j+2; m++){
             if (m<0 || m>=len) continue;
 
-            if(!(k==i && m==j)) plate[i][j].friegh++;
+            if(!(k==i && m==j)) plate[k][m].friegh++;
         }
     }
     
@@ -107,15 +108,17 @@ void freezing(Frode** plate, char temp, char humidity, int len){
                 if(indep_freeze(temp)){
                     plate[i][j].state = FROZEN;
                     addFreigh(plate, i, j, len);
+                    remHum = 1;
                 }
 
-                if(cpy.friegh){
+                if(!remHum && cpy.friegh){
                     if(flu_freeze(cpy)){
                         plate[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
                     }else{
                         plate[i][j].state = DRY;
                     }
+                    remHum = 1;
                 }
 
                 if(remHum){
@@ -125,6 +128,32 @@ void freezing(Frode** plate, char temp, char humidity, int len){
             }
         }
     }
+}
+
+// Print current state of plate
+void prstate(Frode ** plate, int len){
+    for(int i = 0; i < len; i++){
+        for(int j = 0; j < len; j++){
+            char c;
+
+            switch (plate[i][j].state)
+            {
+                case DRY:
+                    c = 'X';
+                    break;
+                case WET:
+                    c = '~';
+                    break;
+                case FROZEN:
+                    c = '#';
+                    break;
+            }
+
+            printf("%c", c);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
 int main(int argc, char**argv){
@@ -140,8 +169,13 @@ int main(int argc, char**argv){
 
     prode(plate, 10, 15);
 
-    Frode* p = &plate[22][25];
-    p->friegh = 1;
-    printf("Succ:\t%i\n", flu_freeze(*p));
+    // Frode* p = &plate[22][25];
+    // p->friegh = 1;
+    // printf("Succ:\t%i\n", flu_freeze(*p));
+    prstate(plate, side_len);
+    freezing(plate, temp, humidity, side_len);
+    prstate(plate, side_len);
+    freezing(plate, temp, humidity, side_len);
+    prstate(plate, side_len);
 }
 
