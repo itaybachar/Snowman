@@ -1,6 +1,11 @@
-A = 2;
+A = 10;
 B = 0.5;
-L = 9;
+L = 3;
+
+//High humidity - Basically grows in a circle
+//Low Humidity - Drying, eventual stopping of growth
+//Mid Humidity - Fractal
+
 function getFrostProbability(x, y)
 {
     Ni = 0;
@@ -22,10 +27,6 @@ function getFrostProbability(x, y)
         p = minVal;
     }
     return p;
-
-    return 1;
-    console.log(1 - (C / 10));
-    return 1 - (C / 10);
 }
 
 function updateHumidity()

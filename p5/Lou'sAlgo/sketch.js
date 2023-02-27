@@ -10,7 +10,7 @@ let dry = [];
 let frostGrowth = new TupleSet();
 let drySpots = new TupleSet();
 let walkers = [];
-//var r = 4;
+
 let maxWalkers = 50;
 let iterations = 150;
 let radius = 8;
@@ -60,7 +60,7 @@ function setup()
 
   R1_slider = createSlider(Math.sqrt(2), 10, Math.sqrt(2), 0.1);
   R1_slider.position(20, 40);
-  totalWalker_slider = createSlider(100, ROWS * COLS, 400, 1);
+  totalWalker_slider = createSlider(100, ROWS * COLS, 10000, 1);
   totalWalker_slider.position(20, 50);
 
   // C_slider.style('width', '50px');
@@ -107,10 +107,10 @@ function draw()
     tree[i].show();
   }
 
-  for (let i = 0; i < walkers.length; i++)
-  {
-    walkers[i].show();
-  }
+  // for (let i = 0; i < walkers.length; i++)
+  // {
+  //   walkers[i].show();
+  // }
 
   for (let n = 0; n < iterations; n++)
   {
@@ -128,8 +128,8 @@ function draw()
         walkers.splice(i, 1);
       }
     }
-    if (flag)
-      calculateDrying();
+    // if (flag)
+    //   calculateDrying();
   }
 
   while (walkers.length < maxWalkers && totalWalkerCount < totalWalker_slider.value())
