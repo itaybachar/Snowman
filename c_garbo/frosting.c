@@ -233,6 +233,6 @@ int main(int argc, char**argv){
     iterfreeze(plate, temp, humidity, len, 5);
     prstate(plate, len); 
 
-    freeplate(plate);
+    freeplate(plate, len);
 }
 
