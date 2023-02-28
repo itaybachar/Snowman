@@ -65,7 +65,7 @@ Frode** allocfrodes(int len, unsigned char hum){
 }
 
 // Allocates both plates needed
-Plate * newplate(len, humidity){
+Plate * newplate(int len, int humidity){
     Plate * p = (Plate *) malloc(sizeof(Plate *));
 
     p->curr = allocfrodes(len, humidity);
