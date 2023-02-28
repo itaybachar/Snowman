@@ -47,7 +47,7 @@ double genprob(double max){
 
 
 // Allocates square plate of length len with an attribute humidity 
-Frode** allocplate(int len, unsigned char hum){
+Frode** allocfrodes(int len, unsigned char hum){
     Frode **t;
 
     t = (Frode **) malloc(sizeof(Frode *) * len);
@@ -62,6 +62,33 @@ Frode** allocplate(int len, unsigned char hum){
     }
 
     return t;    
+}
+
+// Allocates both plates needed
+Plate * newplate(len, humidity){
+    Plate * p = (Plate *) malloc(sizeof(Plate *));
+
+    p->curr = allocfrodes(len, humidity);
+    p->prev = allocfrodes(len, humidity);
+
+    return p;
+}
+
+// frees a plate of frodes
+void deallocfrodes(Frode ** f, int len){
+    for (int i = 0; i < len; i++) {
+        free(f[i]);
+    }
+
+    free(f);
+}
+
+// frees both frode plates and struct itself
+void freeplate(Plate * p, int len){
+    deallocfrodes(p->curr, len);
+    deallocfrodes(p->curr, len);
+
+    free(p);
 }
 
 // independent freezing of nodes
@@ -189,13 +216,11 @@ int main(int argc, char**argv){
     // inputs are temp and humidity
     int temp = atoi(argv[1]);
     int humidity = atoi(argv[2]);
-    int side_len = atoi(argv[3]);
+    int len = atoi(argv[3]);
 
-    AHUM = side_len*side_len*humidity;
+    AHUM = len*len*humidity;
 
-    Plate plate;
-    plate.curr = allocplate(side_len, humidity);
-    plate.prev = allocplate(side_len, humidity);
+    Plate * plate = newplate(len, humidity);
     // Frode** plate = allocplate(side_len, humidity);
 
 
@@ -204,8 +229,10 @@ int main(int argc, char**argv){
     // Frode* p = &plate[22][25];
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
-    prstate(&plate, side_len);
-    iterfreeze(&plate, temp, humidity, side_len, 5);
-    prstate(&plate, side_len); 
+    prstate(plate, len);
+    iterfreeze(plate, temp, humidity, len, 5);
+    prstate(plate, len); 
+
+    freeplate(plate);
 }
 
