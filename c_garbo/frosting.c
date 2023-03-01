@@ -7,10 +7,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
+#include "libbmp.h"
 // States of nodes
 #define DRY 0
 #define WET 1
 #define FROZEN 2
+#define STOPTEMP 1
 
 // Available Humidity in Wet Pillars
 static int AHUM = 0;
@@ -135,7 +137,7 @@ void addFreigh(Plate * plate, int i, int j, int len){
     
 }
 
-void freezing(Plate* plate, char temp, char humidity, int len){
+void freezing(Plate* plate, char temp, char humidity, int len, int iter){
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
             Frode cpy = plate->curr[i][j];
@@ -144,7 +146,7 @@ void freezing(Plate* plate, char temp, char humidity, int len){
                 int remHum = 0;
 
                 // ONLY WRITE TO PREV MATRIX, ONLY READ FROM CURR MATRIX
-                if(indep_freeze(temp)){
+                if(iter < STOPTEMP && indep_freeze(temp)){
                     plate->prev[i][j].state = FROZEN;
                     addFreigh(plate, i, j, len);
                     remHum = 1;
@@ -178,7 +180,7 @@ void freezing(Plate* plate, char temp, char humidity, int len){
 void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter){
     for (int i = 0; i < iter; i++)
     {
-        freezing(plate, temp, humidity, len);
+        freezing(plate, temp, humidity, len, i);
     }
 }
 
@@ -212,11 +214,37 @@ void prstate(Plate* plate, int len){
     printf("\n");
 }
 
+void makebitmap(Plate * plate, int len){
+    bmp_img img;
+    bmp_img_init_df (&img, len, len);
+
+    for(int i = 0; i < len; i++){
+        for(int j = 0; j < len; j++){
+            switch (plate->curr[i][j].state)
+            {
+            case DRY:
+                bmp_pixel_init (&img.img_pixels[i][j], 0, 0, 0);
+                break;
+            case WET:
+                bmp_pixel_init (&img.img_pixels[i][j], 250, 250, 250);
+                break;
+            case FROZEN:
+                bmp_pixel_init (&img.img_pixels[i][j], 50, 178, 247);
+                break;
+            }
+        }
+    }
+
+    bmp_img_write (&img, "fr.bmp");
+	bmp_img_free (&img);
+}
+
 int main(int argc, char**argv){
     // inputs are temp and humidity
     int temp = atoi(argv[1]);
     int humidity = atoi(argv[2]);
     int len = atoi(argv[3]);
+    int iters = atoi(argv[4]);
 
     AHUM = len*len*humidity;
 
@@ -229,9 +257,10 @@ int main(int argc, char**argv){
     // Frode* p = &plate[22][25];
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
-    prstate(plate, len);
-    iterfreeze(plate, temp, humidity, len, 5);
-    prstate(plate, len); 
+    // prstate(plate, len);
+    iterfreeze(plate, temp, humidity, len, iters);
+    // prstate(plate, len); 
+    makebitmap(plate, len);
 
     freeplate(plate, len);
 }
