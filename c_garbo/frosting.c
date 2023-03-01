@@ -107,7 +107,13 @@ int indep_freeze(int temp){
 int flu_freeze(Frode node){
 
     // prob is reduced if there are multiple freighs (multiple ice bridges being made)
-    double prob = ((double)(node.humidity))/(255.0 * node.friegh);
+    // double prob = ((double)(node.humidity))/(255.0 * node.friegh);
+
+    // Logictic curve prob
+    double p = -23.4402+(node.humidity/255.0)*5.60693;
+    double prob = 1/((1+exp(p))*node.friegh);
+    // // divide prob by frozen neighbors
+    // prob /= node.friegh;
     // printf("Prob:\t%f\n", prob);
 
 
