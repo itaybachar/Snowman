@@ -110,7 +110,7 @@ int flu_freeze(Frode node){
     // double prob = ((double)(node.humidity))/(255.0 * node.friegh);
 
     // Logictic curve prob
-    double p = -23.4402+(node.humidity/255.0)*5.60693;
+    double p = 5.60693+(node.humidity/255.0)*-23.4402;
     double prob = 1/((1+exp(p))*node.friegh);
     // // divide prob by frozen neighbors
     // prob /= node.friegh;
