@@ -18,9 +18,14 @@ def convertToJpg():
         im.save(f.replace("bmp", "jpg"))
 
 def delpictemp():
-    pictemp = glob.glob("./Snowman/c_garbo/pictemp/*")
-    for p in pictemp:
-        os.remove(p)
+    # Have to write it this way to keep README.txt in pictemp 
+    bmps = glob.glob("./Snowman/c_garbo/pictemp/*.bmp")
+    for b in bmps:
+        os.remove(b)
+
+    jpegs = glob.glob("./Snowman/c_garbo/pictemp/*.jpg")
+    for j in jpegs:
+        os.remove(j)
 
 def frost(temp, humidity, len, iters):
     fr = CDLL("./Snowman/c_garbo/frosting.so")
