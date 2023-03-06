@@ -6,7 +6,7 @@ def make_gif(name, iters):
     frames = [Image.open(image) for image in glob.glob("./Snowman/c_garbo/pictemp/*.jpg")]
     frame_one = frames[0]
     frame_one.save(f"./Snowman/c_garbo/{name}.gif", format="GIF", append_images=frames,
-               save_all=True, duration=iters*40, loop=0)
+               save_all=True, duration=iters*5, loop=0)
 
 def convertToJpg():
     files = glob.glob('./Snowman/c_garbo/pictemp/*.bmp')
@@ -33,8 +33,8 @@ def frost(temp, humidity, len, iters):
     fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters))
 
 if __name__ == "__main__":
-    iters = 25
-    frost(-10, 120, 1024, iters)
+    iters = 70
+    frost(-3, 65, 512, iters)
     convertToJpg()
     make_gif("frAni", iters)
     delpictemp()

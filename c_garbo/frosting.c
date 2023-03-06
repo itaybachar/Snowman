@@ -22,7 +22,8 @@ static int AHUM = 0;
 typedef struct Frode{
     unsigned char humidity; // 255 is highest hummidty possible, 0 is lowest relative humidity
     char state;   // current state of node
-    char friegh; // frozen neighbors -> freigh, max 8
+    char friegh; // frozen horiz or vert neighbors -> freigh, max 4
+    char diag; // diagonal frozen neighbors -> max 4
 } Frode;
 
 typedef struct Plate{
@@ -61,6 +62,7 @@ Frode** allocfrodes(int len, unsigned char hum){
             t[i][j].humidity = hum;
             t[i][j].state = WET;
             t[i][j].friegh = 0;
+            t[i][j].diag = 0;
         }
     }
 
@@ -109,9 +111,14 @@ int flu_freeze(Frode node){
     // prob is reduced if there are multiple freighs (multiple ice bridges being made)
     // double prob = ((double)(node.humidity))/(255.0 * node.friegh);
 
+    double weight = 1.0;
+
+    // if(node.friegh) weight*=node.friegh;
+    // if(node.diag) weight*=2 * node.diag;
+
     // Logictic curve prob
     double p = 5.60693+(node.humidity/255.0)*-23.4402;
-    double prob = 1/((1+exp(p))*node.friegh);
+    double prob = 1/((1+exp(p))*(node.friegh + node.diag));
     // // divide prob by frozen neighbors
     // prob /= node.friegh;
     // printf("Prob:\t%f\n", prob);
@@ -137,7 +144,13 @@ void addFreigh(Plate * plate, int i, int j, int len){
         for (int m = j-1; m < j+2; m++){
             if (m<0 || m>=len) continue;
 
-            if(!(k==i && m==j)) plate->prev[k][m].friegh++;
+            if(!(k==i && m==j)) {
+                // Jerry rigged way to find diagonal neighbors
+                if((k+m)%2 == 0)
+                    plate->prev[k][m].diag++;
+                else
+                    plate->prev[k][m].friegh++;
+            }
         }
     }
     
@@ -158,7 +171,7 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter){
                     remHum = 1;
                 }
 
-                if(!remHum && cpy.friegh){
+                if(!remHum && (cpy.friegh || cpy.diag)){
                     if(flu_freeze(cpy)){
                         plate->prev[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
