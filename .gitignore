@@ -2,3 +2,6 @@
 *.exe
 # ignore bitmaps
 *.bmp
+# ignore shared libraries 
+*.so
+*.gif

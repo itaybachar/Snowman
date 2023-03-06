@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <limits.h>
 #include "libbmp.h"
@@ -81,14 +82,13 @@ void deallocfrodes(Frode ** f, int len){
     for (int i = 0; i < len; i++) {
         free(f[i]);
     }
-
     free(f);
 }
 
 // frees both frode plates and struct itself
 void freeplate(Plate * p, int len){
     deallocfrodes(p->curr, len);
-    deallocfrodes(p->curr, len);
+    deallocfrodes(p->prev, len);
 
     free(p);
 }
@@ -183,12 +183,6 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter){
     switchplates(plate);
 }
 
-void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter){
-    for (int i = 0; i < iter; i++)
-    {
-        freezing(plate, temp, humidity, len, i);
-    }
-}
 
 // Print current state of plate (curr, prev)
 void prstate(Plate* plate, int len){
@@ -220,9 +214,17 @@ void prstate(Plate* plate, int len){
     printf("\n");
 }
 
-void makebitmap(Plate * plate, int len){
+void makebitmap(Plate * plate, int len, int iter){
     bmp_img img;
     bmp_img_init_df (&img, len, len);
+
+    char filename[16] = "fr";
+
+    char num[4];
+    sprintf(num, "%03d", iter);
+
+    strcat(filename, num);
+    strcat(filename, ".bmp");
 
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
@@ -241,8 +243,32 @@ void makebitmap(Plate * plate, int len){
         }
     }
 
-    bmp_img_write (&img, "fr.bmp");
+    bmp_img_write (&img, filename);
 	bmp_img_free (&img);
+
+    char command[50] = "move ";
+    strcat(command, filename);
+    strcat(command, " Snowman\\c_garbo\\pictemp");
+    system(command);
+}
+
+void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter){
+    for (int i = 0; i < iter; i++)
+    {
+        freezing(plate, temp, humidity, len, i);
+        makebitmap(plate, len, i);
+    }
+}
+
+// python hook function
+int frost(int temp, int humidity, int len, int iters){
+    AHUM = len*len*humidity;
+
+    Plate * plate = newplate(len, humidity);
+
+    iterfreeze(plate, temp, humidity, len, iters);
+    freeplate(plate, len);
+    return 1;
 }
 
 int main(int argc, char**argv){
@@ -266,7 +292,6 @@ int main(int argc, char**argv){
     // prstate(plate, len);
     iterfreeze(plate, temp, humidity, len, iters);
     // prstate(plate, len); 
-    makebitmap(plate, len);
 
     freeplate(plate, len);
 }
