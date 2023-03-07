@@ -1,40 +1,41 @@
 import os, glob
 from PIL import Image
 from ctypes import *
+from tqdm import tqdm
 
 def make_gif(name, iters):
-    frames = [Image.open(image) for image in glob.glob("./Snowman/c_garbo/pictemp/*.jpg")]
+    frames = [Image.open(image) for image in glob.glob("./Snowman/c_garbo/pictemp/*.png")]
     frame_one = frames[0]
     frame_one.save(f"./Snowman/c_garbo/{name}.gif", format="GIF", append_images=frames,
-               save_all=True, duration=iters*5, loop=0)
+               save_all=True, duration=iters, loop=0)
 
-def convertToJpg():
+def convertToPng():
     files = glob.glob('./Snowman/c_garbo/pictemp/*.bmp')
 
     # Converts the images:
     for f in files:
         im = Image.open(f)
         im.convert("RGB")
-        im.save(f.replace("bmp", "jpg"))
+        im.save(f.replace("bmp", "png"))
 
 def delpictemp():
     # Have to write it this way to keep README.txt in pictemp 
     bmps = glob.glob("./Snowman/c_garbo/pictemp/*.bmp")
-    for b in bmps:
+    for b in tqdm(bmps, desc="Delete BMPs "):
         os.remove(b)
 
-    jpegs = glob.glob("./Snowman/c_garbo/pictemp/*.jpg")
-    for j in jpegs:
+    jpegs = glob.glob("./Snowman/c_garbo/pictemp/*.png")
+    for j in tqdm(jpegs, desc="Delete JPEGs"):
         os.remove(j)
 
-def frost(temp, humidity, len, iters):
+def frost(temp, humidity, len, iters, pwid):
     fr = CDLL("./Snowman/c_garbo/frosting.so")
-    fr.frost.argtypes = (c_int, c_int, c_int, c_int)
-    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters))
+    fr.frost.argtypes = (c_int, c_int, c_int, c_int, c_int)
+    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid))
 
 if __name__ == "__main__":
-    iters = 70
-    frost(-3, 65, 512, iters)
-    convertToJpg()
+    iters = 140
+    frost(-2, 60, 256, iters, 3)
+    convertToPng()
     make_gif("frAni", iters)
     delpictemp()

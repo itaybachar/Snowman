@@ -227,9 +227,16 @@ void prstate(Plate* plate, int len){
     printf("\n");
 }
 
-void makebitmap(Plate * plate, int len, int iter){
+void makebitmap(Plate * plate, int len, int iter, int pwid){
+    
+    struct RGB {
+        int r;
+        int g;
+        int b;
+    } color;
+
     bmp_img img;
-    bmp_img_init_df (&img, len, len);
+    bmp_img_init_df (&img, pwid*len, pwid*len);
 
     char filename[16] = "fr";
 
@@ -244,14 +251,19 @@ void makebitmap(Plate * plate, int len, int iter){
             switch (plate->curr[i][j].state)
             {
             case DRY:
-                bmp_pixel_init (&img.img_pixels[i][j], 0, 0, 0);
+                color.r = 0; color.g = 0; color.b = 0;
                 break;
             case WET:
-                bmp_pixel_init (&img.img_pixels[i][j], 250, 250, 250);
+                color.r = 250; color.g = 250; color.b = 250;
                 break;
             case FROZEN:
-                bmp_pixel_init (&img.img_pixels[i][j], 50, 178, 247);
+                color.r = 50; color.g = 178; color.b = 247;
                 break;
+            }
+
+            for(int k = pwid*i; k < pwid*(i+1); k++){
+                for(int l = pwid*j; l < pwid*(j+1); l++)
+                    bmp_pixel_init (&img.img_pixels[k][l], color.r, color.g, color.b);
             }
         }
     }
@@ -261,25 +273,25 @@ void makebitmap(Plate * plate, int len, int iter){
 
     char command[50] = "move ";
     strcat(command, filename);
-    strcat(command, " Snowman\\c_garbo\\pictemp");
+    strcat(command, " Snowman\\c_garbo\\pictemp >NUL");
     system(command);
 }
 
-void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter){
+void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid){
     for (int i = 0; i < iter; i++)
     {
         freezing(plate, temp, humidity, len, i);
-        makebitmap(plate, len, i);
+        makebitmap(plate, len, i, pwid);
     }
 }
 
 // python hook function
-int frost(int temp, int humidity, int len, int iters){
+int frost(int temp, int humidity, int len, int iters, int pwid){
     AHUM = len*len*humidity;
 
     Plate * plate = newplate(len, humidity);
 
-    iterfreeze(plate, temp, humidity, len, iters);
+    iterfreeze(plate, temp, humidity, len, iters, pwid);
     freeplate(plate, len);
     return 1;
 }
@@ -303,7 +315,7 @@ int main(int argc, char**argv){
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
     // prstate(plate, len);
-    iterfreeze(plate, temp, humidity, len, iters);
+    iterfreeze(plate, temp, humidity, len, iters, 1);
     // prstate(plate, len); 
 
     freeplate(plate, len);
