@@ -54,12 +54,11 @@ class Walker
       //Add sticking probability
 
       //Gaussian Droplet size:
-      let gaussianSize = gaussianRandom();
+      let gaussianSize = 0.3; //Guassian in domain 0-1
 
       //Calculate Water consumption
       waterConsumption = getFrostProbability(this.pos.x, this.pos.y);
-
-      if (waterConsumption < gaussianSize)
+      if (random(1) < waterConsumption)
       {
         this.stuck = true;
 
@@ -71,6 +70,8 @@ class Walker
       }
       else
       {
+        if (random(1) < 1)
+          return 0;
         this.dry = true;
         this.setColor(color(2, 2, 2));
         dry.push(this)
