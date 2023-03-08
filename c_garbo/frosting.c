@@ -49,6 +49,15 @@ double genprob(double max){
      return (double) number /((double) UINT_MAX + 1) * max;
 }
 
+void show_status (double percent, const char* desc, int isFinal){
+    printf("%s:\t", desc);
+    for(int x = 0; x < 100; x++) {   
+       printf("%c", (x < percent)?'#':'-');        
+    }
+    
+    printf(" %.2f%%%c", percent, (isFinal)?'\n':'\r');
+    fflush(stdout);
+}
 
 // Allocates square plate of length len with an attribute humidity 
 Frode** allocfrodes(int len, unsigned char hum){
@@ -80,17 +89,19 @@ Plate * newplate(int len, int humidity){
 }
 
 // frees a plate of frodes
-void deallocfrodes(Frode ** f, int len){
+int deallocfrodes(Frode ** f, int len, int bar){
     for (int i = 0; i < len; i++) {
         free(f[i]);
+        show_status((++bar/(len/50.0)), "Dealloc Plate", (bar==2*len-1));
     }
     free(f);
+    return bar;
 }
 
 // frees both frode plates and struct itself
 void freeplate(Plate * p, int len){
-    deallocfrodes(p->curr, len);
-    deallocfrodes(p->prev, len);
+    int bar = deallocfrodes(p->curr, len, 0);
+    deallocfrodes(p->prev, len, bar);
 
     free(p);
 }
@@ -175,10 +186,11 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter){
                     if(flu_freeze(cpy)){
                         plate->prev[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
-                    }else{
+                        remHum = 1;
+                    }else if(genprob(1.0) < 0.2){
                         plate->prev[i][j].state = DRY;
+                        remHum = 1;
                     }
-                    remHum = 1;
                 }
 
                 if(remHum){
@@ -282,7 +294,9 @@ void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int 
     {
         freezing(plate, temp, humidity, len, i);
         makebitmap(plate, len, i, pwid);
+        show_status(((i+1)*100.0)/iter, "Freezing", (i==iter-1));
     }
+
 }
 
 // python hook function
