@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <limits.h>
 #include "libbmp.h"
@@ -21,7 +22,8 @@ static int AHUM = 0;
 typedef struct Frode{
     unsigned char humidity; // 255 is highest hummidty possible, 0 is lowest relative humidity
     char state;   // current state of node
-    char friegh; // frozen neighbors -> freigh, max 8
+    char friegh; // frozen horiz or vert neighbors -> freigh, max 4
+    char diag; // diagonal frozen neighbors -> max 4
 } Frode;
 
 typedef struct Plate{
@@ -47,6 +49,15 @@ double genprob(double max){
      return (double) number /((double) UINT_MAX + 1) * max;
 }
 
+void show_status (double percent, const char* desc, int isFinal){
+    printf("%s:\t|", desc);
+    for(int x = 0; x < 100; x++) {   
+       printf("%c", (x < percent)?'#':'-');        
+    }
+    
+    printf("| %.2f%%%c", percent, (isFinal)?'\n':'\r');
+    fflush(stdout);
+}
 
 // Allocates square plate of length len with an attribute humidity 
 Frode** allocfrodes(int len, unsigned char hum){
@@ -60,6 +71,7 @@ Frode** allocfrodes(int len, unsigned char hum){
             t[i][j].humidity = hum;
             t[i][j].state = WET;
             t[i][j].friegh = 0;
+            t[i][j].diag = 0;
         }
     }
 
@@ -77,18 +89,19 @@ Plate * newplate(int len, int humidity){
 }
 
 // frees a plate of frodes
-void deallocfrodes(Frode ** f, int len){
+int deallocfrodes(Frode ** f, int len, int bar){
     for (int i = 0; i < len; i++) {
         free(f[i]);
+        show_status((++bar/(len/50.0)), "Dealloc Plate", (bar==2*len-1));
     }
-
     free(f);
+    return bar;
 }
 
 // frees both frode plates and struct itself
 void freeplate(Plate * p, int len){
-    deallocfrodes(p->curr, len);
-    deallocfrodes(p->curr, len);
+    int bar = deallocfrodes(p->curr, len, 0);
+    deallocfrodes(p->prev, len, bar);
 
     free(p);
 }
@@ -109,9 +122,14 @@ int flu_freeze(Frode node){
     // prob is reduced if there are multiple freighs (multiple ice bridges being made)
     // double prob = ((double)(node.humidity))/(255.0 * node.friegh);
 
+    double weight = 1.0;
+
+    // if(node.friegh) weight*=node.friegh;
+    // if(node.diag) weight*=2 * node.diag;
+
     // Logictic curve prob
     double p = 5.60693+(node.humidity/255.0)*-23.4402;
-    double prob = 1/((1+exp(p))*node.friegh);
+    double prob = 1/((1+exp(p))*(node.friegh + 1.41421*node.diag));
     // // divide prob by frozen neighbors
     // prob /= node.friegh;
     // printf("Prob:\t%f\n", prob);
@@ -137,13 +155,19 @@ void addFreigh(Plate * plate, int i, int j, int len){
         for (int m = j-1; m < j+2; m++){
             if (m<0 || m>=len) continue;
 
-            if(!(k==i && m==j)) plate->prev[k][m].friegh++;
+            if(!(k==i && m==j)) {
+                // Jerry rigged way to find diagonal neighbors
+                if((k+m)%2 == 0)
+                    plate->prev[k][m].diag++;
+                else
+                    plate->prev[k][m].friegh++;
+            }
         }
     }
     
 }
 
-void freezing(Plate* plate, char temp, char humidity, int len, int iter){
+void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias){
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
             Frode cpy = plate->curr[i][j];
@@ -158,14 +182,15 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter){
                     remHum = 1;
                 }
 
-                if(!remHum && cpy.friegh){
+                if(!remHum && (cpy.friegh || cpy.diag) && (genprob(1.0) < bias)){
                     if(flu_freeze(cpy)){
                         plate->prev[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
+                        remHum = 1;
                     }else{
                         plate->prev[i][j].state = DRY;
+                        remHum = 1;
                     }
-                    remHum = 1;
                 }
 
                 if(remHum){
@@ -183,12 +208,6 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter){
     switchplates(plate);
 }
 
-void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter){
-    for (int i = 0; i < iter; i++)
-    {
-        freezing(plate, temp, humidity, len, i);
-    }
-}
 
 // Print current state of plate (curr, prev)
 void prstate(Plate* plate, int len){
@@ -220,29 +239,75 @@ void prstate(Plate* plate, int len){
     printf("\n");
 }
 
-void makebitmap(Plate * plate, int len){
+void makebitmap(Plate * plate, int len, int iter, int pwid){
+    
+    struct RGB {
+        int r;
+        int g;
+        int b;
+    } color;
+
     bmp_img img;
-    bmp_img_init_df (&img, len, len);
+    bmp_img_init_df (&img, pwid*len, pwid*len);
+
+    char filename[16] = "fr";
+
+    char num[4];
+    sprintf(num, "%03d", iter);
+
+    strcat(filename, num);
+    strcat(filename, ".bmp");
 
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
             switch (plate->curr[i][j].state)
             {
             case DRY:
-                bmp_pixel_init (&img.img_pixels[i][j], 0, 0, 0);
+                color.r = 0; color.g = 0; color.b = 0;
                 break;
             case WET:
-                bmp_pixel_init (&img.img_pixels[i][j], 250, 250, 250);
+                color.r = 250; color.g = 250; color.b = 250;
                 break;
             case FROZEN:
-                bmp_pixel_init (&img.img_pixels[i][j], 50, 178, 247);
+                color.r = 50; color.g = 178; color.b = 247;
                 break;
+            }
+
+            for(int k = pwid*i; k < pwid*(i+1); k++){
+                for(int l = pwid*j; l < pwid*(j+1); l++)
+                    bmp_pixel_init (&img.img_pixels[k][l], color.r, color.g, color.b);
             }
         }
     }
 
-    bmp_img_write (&img, "fr.bmp");
+    bmp_img_write (&img, filename);
 	bmp_img_free (&img);
+
+    char command[50] = "move ";
+    strcat(command, filename);
+    strcat(command, " Snowman\\c_garbo\\pictemp >NUL");
+    system(command);
+}
+
+void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias){
+    for (int i = 0; i < iter; i++)
+    {
+        freezing(plate, temp, humidity, len, i, bias);
+        makebitmap(plate, len, i, pwid);
+        show_status(((i+1)*100.0)/iter, "Freezing", (i==iter-1));
+    }
+
+}
+
+// python hook function
+int frost(int temp, int humidity, int len, int iters, int pwid, double bias){
+    AHUM = len*len*humidity;
+
+    Plate * plate = newplate(len, humidity);
+
+    iterfreeze(plate, temp, humidity, len, iters, pwid, bias);
+    freeplate(plate, len);
+    return 1;
 }
 
 int main(int argc, char**argv){
@@ -264,9 +329,8 @@ int main(int argc, char**argv){
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
     // prstate(plate, len);
-    iterfreeze(plate, temp, humidity, len, iters);
+    iterfreeze(plate, temp, humidity, len, iters, 1, 1.1);
     // prstate(plate, len); 
-    makebitmap(plate, len);
 
     freeplate(plate, len);
 }
