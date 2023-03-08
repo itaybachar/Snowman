@@ -2,7 +2,9 @@ import os, glob
 from PIL import Image
 from ctypes import *
 from tqdm import tqdm
+from halo import Halo
 
+@Halo(text="Making GIF")
 def make_gif(name, iters):
     frames = [Image.open(image) for image in glob.glob("./Snowman/c_garbo/pictemp/*.png")]
     frame_one = frames[0]
@@ -13,7 +15,7 @@ def convertToPng():
     files = glob.glob('./Snowman/c_garbo/pictemp/*.bmp')
 
     # Converts the images:
-    for f in files:
+    for f in tqdm(files, desc="Convert BMPs"):
         im = Image.open(f)
         im.convert("RGB")
         im.save(f.replace("bmp", "png"))
@@ -35,7 +37,7 @@ def frost(temp, humidity, len, iters, pwid):
 
 if __name__ == "__main__":
     iters = 80
-    frost(-15, 25, 400, iters, 2)
+    frost(-15, 80, 400, iters, 2)
     convertToPng()
     make_gif("frAni", iters)
     delpictemp()

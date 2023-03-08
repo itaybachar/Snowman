@@ -50,12 +50,12 @@ double genprob(double max){
 }
 
 void show_status (double percent, const char* desc, int isFinal){
-    printf("%s:\t", desc);
+    printf("%s:\t|", desc);
     for(int x = 0; x < 100; x++) {   
        printf("%c", (x < percent)?'#':'-');        
     }
     
-    printf(" %.2f%%%c", percent, (isFinal)?'\n':'\r');
+    printf("| %.2f%%%c", percent, (isFinal)?'\n':'\r');
     fflush(stdout);
 }
 
