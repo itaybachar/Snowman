@@ -54,12 +54,15 @@ class Walker
       //Add sticking probability
 
       //Gaussian Droplet size:
-      let gaussianSize = 0.3; //Guassian in domain 0-1
+      let gaussianSize = 0.15; //Guassian in domain 0-1
 
       //Calculate Water consumption
       waterConsumption = getFrostProbability(this.pos.x, this.pos.y);
-      if (random(1) < waterConsumption)
+      console.log(waterConsumption)
+      if (waterConsumption < gaussianSize)
       {
+        if (random(1) < 0.3)
+          return 0;
         this.stuck = true;
 
         if (distSq(this.pos, seed) >= 0.8 * spawnRadius * spawnRadius)
@@ -70,10 +73,11 @@ class Walker
       }
       else
       {
-        if (random(1) < 1)
+        if (random(1) < 0.3)
           return 0;
         this.dry = true;
-        this.setColor(color(2, 2, 2));
+        this.stuck = true;
+        this.setColor(color(0, 0, 80));
         dry.push(this)
         drySpots.add([this.pos.x, this.pos.y]);
         return 2;
@@ -92,19 +96,11 @@ class Walker
     noStroke();
     if (this.stuck && typeof this.c !== 'undefined')
     {
-      if (this.dry)//Dry
-      {
-        this.c = color(43, 0, 122);
-        this.c.setAlpha(50);
-
-      }
-      else//Frozen
+      if (!this.dry)//Dry
       {
         stroke(0);
         strokeWeight(0.5);
         this.c = color(87, 191, 235);
-        this.c = color(0, 0, 139);
-
       }
       fill(this.c);
     } else
