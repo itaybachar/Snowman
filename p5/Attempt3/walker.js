@@ -46,19 +46,14 @@ class Walker
       frostGrowth.has([this.pos.x + 1, this.pos.y]) ||
       frostGrowth.has([this.pos.x, this.pos.y + 1]))
     {
-      //Add holes?
-      //Add sticking probability
-
-      //Gaussian Droplet size:
-      let gaussianSize = 0.15; //Guassian in domain 0-1
-
-      //Calculate Water consumption
-
+      //Make sure no holes are formed
       if (!hasHoles(this.pos))
       {
+        //Calculate freezing probability
         let prob = getFrostProbability(this.pos.x, this.pos.y);
         if (random(1) < prob)
         {
+          //Walker Froze
           this.stuck = true;
 
           if (distSq(this.pos, seed) >= 0.8 * spawnRadius * spawnRadius)
@@ -67,17 +62,25 @@ class Walker
           }
           return 1;
         }
-        // else
-        // {
-        //   if (random(1) < 0.3)
-        //     return 0;
-        //   this.dry = true;
-        //   this.stuck = true;
-        //   this.setColor(color(0, 0, 80));
-        //   dry.push(this)
-        //   drySpots.add([this.pos.x, this.pos.y]);
-        //   return 2;
-        // }
+        else
+        {
+          //If walker did not freeze, 
+          //First allow the seed to grow a little
+          if (tree.length > 100)
+          {
+            //Probability of Drying
+            //If we satisfy the probability, we are dry. else we walk.
+            if (random(1) < (1 - humidity) * prob)
+            {
+              this.dry = true;
+              this.stuck = true;
+              this.setColor(color(0, 0, 80));
+              dry.push(this)
+              drySpots.add([this.pos.x, this.pos.y]);
+              return 2;
+            }
+          }
+        }
       }
     }
     return 0;
