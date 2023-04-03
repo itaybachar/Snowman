@@ -1,8 +1,8 @@
-m_c1 = 0.05;
-m_c2 = 0.1;
-m_b1 = 0.4;
+m_c1 = 0.4;
+m_c2 = 0.9;
+m_b1 = 0.3;
 m_C = 10;
-m_C2 = 0.3;//0.41;
+m_C2 = 0.3;
 
 //High humidity - Basically grows in a circle
 //Low Humidity - Drying, eventual stopping of growth
@@ -14,53 +14,27 @@ function getFrostProbability(x, y)
     //Check Diagonals:
     diagCount = 0;
     adjCount = 0;
-    /* if (frostGrowth.has([x - 1, y - 1]))
-         diagCount++;
-     if (frostGrowth.has([x + 1, y - 1]))
-         diagCount++;
-     if (frostGrowth.has([x - 1, y + 1]))
-         diagCount++;
-     if (frostGrowth.has([x + 1, y + 1]))
-         diagCount++;
-     if (frostGrowth.has([x, y - 1]))
-         adjCount++;
-     if (frostGrowth.has([x - 1, y]))
-         adjCount++;
-     if (frostGrowth.has([x + 1, y]))
-         adjCount++;
-     if (frostGrowth.has([x, y + 1]))
-         adjCount++;
-     */
+    if (frostGrowth.has([x - 1, y - 1]))
+        diagCount++;
+    if (frostGrowth.has([x + 1, y - 1]))
+        diagCount++;
+    if (frostGrowth.has([x - 1, y + 1]))
+        diagCount++;
+    if (frostGrowth.has([x + 1, y + 1]))
+        diagCount++;
+    if (frostGrowth.has([x, y - 1]))
+        adjCount++;
+    if (frostGrowth.has([x - 1, y]))
+        adjCount++;
+    if (frostGrowth.has([x + 1, y]))
+        adjCount++;
+    if (frostGrowth.has([x, y + 1]))
+        adjCount++;
 
-    Ni = 0;
-    L = 9
-    total = 0;
-    let halfCircle = floor(L / 2);
-    for (let i = y - halfCircle; i <= y + halfCircle; i++)
-    {
-        for (let j = x - halfCircle; j <= x + halfCircle; j++)
-        {
-            if (frostGrowth.has([i, j]))
-                Ni++;
-            total++;
-        }
-    }
-    // tension = 1 / constrain(10 * (Ni / L / L - (L - 1) / 2 / L) + 0.2, 0.1, 100);
-    /*waterConsumption = diagCount * (m_C * m_c2 + m_b1) + adjCount * (m_C * m_c1 + m_b1);
-    waterConsumption = waterConsumption * (m_C2);*/
-    waterConsumption = (Ni) * (m_C) + m_b1;
-    // console.log(waterConsumption);
+    waterConsumption = diagCount * (m_C * m_c2 + m_b1) + adjCount * (m_C * m_c1 + m_b1);
+    waterConsumption = waterConsumption / (4 * (m_C * m_c2 + m_b1) + 4 * (m_C * m_c2 + m_b1));
 
-    waterConsumption = map(waterConsumption, 0, total * (m_C) + m_b1, 0, 1);
-    console.log(waterConsumption);
-
-    return 1 - waterConsumption;
-}
-
-function updateHumidity()
-{
-    // C += 0.01;
-    // C_slider.value = 0.01;
+    return waterConsumption;
 }
 
 function gaussianRandom(mean = 0, stdev = 1)

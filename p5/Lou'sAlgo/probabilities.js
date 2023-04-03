@@ -1,6 +1,6 @@
-A = 10;
+A = 1;
 B = 0.5;
-L = 3;
+L = 9;
 
 //High humidity - Basically grows in a circle
 //Low Humidity - Drying, eventual stopping of growth
@@ -22,12 +22,12 @@ function getFrostProbability(x, y)
     minVal = .01;
     k = (Ni / L / L - (L - 1) / 2 / L);
     p = A * k + B;
-    console.log(p)
-    // console.log("Prob: " + p)
+    // console.log(k)
     if (p < minVal)
     {
         p = minVal;
     }
+    console.log("Prob: " + p)
     return p;
 }
 

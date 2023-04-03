@@ -91,7 +91,7 @@ function draw()
   // text('C1: ' + c1_slider.value(), c1_slider.x * 1.5 + c1_slider.width, c1_slider.y + 10);
   // text('C2: ' + c2_slider.value(), c2_slider.x * 1.5 + c2_slider.width, c2_slider.y + 10);
   // text('R1: ' + R1_slider.value(), R1_slider.x * 1.5 + R1_slider.width, R1_slider.y + 10);
-  // text('Total Walkers: ' + totalWalker_slider.value(), totalWalker_slider.x * 1.5 + totalWalker_slider.width, totalWalker_slider.y + 10);
+  text('Total Walkers: ' + totalWalker_slider.value(), totalWalker_slider.x * 1.5 + totalWalker_slider.width, totalWalker_slider.y + 10);
 
   noFill();
   stroke(color(255, 0, 0));

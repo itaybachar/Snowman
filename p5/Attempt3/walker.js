@@ -41,46 +41,46 @@ class Walker
   checkStuck()
   {
     if (
-      frostGrowth.has([this.pos.x - 1, this.pos.y - 1]) ||
       frostGrowth.has([this.pos.x, this.pos.y - 1]) ||
-      frostGrowth.has([this.pos.x + 1, this.pos.y - 1]) ||
       frostGrowth.has([this.pos.x - 1, this.pos.y]) ||
       frostGrowth.has([this.pos.x + 1, this.pos.y]) ||
-      frostGrowth.has([this.pos.x - 1, this.pos.y + 1]) ||
-      frostGrowth.has([this.pos.x, this.pos.y + 1]) ||
-      frostGrowth.has([this.pos.x + 1, this.pos.y + 1]))
+      frostGrowth.has([this.pos.x, this.pos.y + 1]))
     {
-      //Add holes?
-      //Add sticking probability
-
-      //Gaussian Droplet size:
-      let gaussianSize = 0.15; //Guassian in domain 0-1
-
-      //Calculate Water consumption
-      waterConsumption = getFrostProbability(this.pos.x, this.pos.y);
-      console.log(waterConsumption)
-      if (waterConsumption < gaussianSize)
+      //Make sure no holes are formed
+      if (!hasHoles(this.pos))
       {
-        if (random(1) < 0.3)
-          return 0;
-        this.stuck = true;
-
-        if (distSq(this.pos, seed) >= 0.8 * spawnRadius * spawnRadius)
+        //Calculate freezing probability
+        let prob = getFrostProbability(this.pos.x, this.pos.y);
+        if (random(1) < prob)
         {
-          spawnRadius = constrain(spawnRadius + 2, spawnRadius, Math.min(seed.x, seed.y));
+          //Walker Froze
+          this.stuck = true;
+
+          if (distSq(this.pos, seed) >= 0.8 * spawnRadius * spawnRadius)
+          {
+            spawnRadius = constrain(spawnRadius + 2, spawnRadius, Math.min(seed.x, seed.y));
+          }
+          return 1;
         }
-        return 1;
-      }
-      else
-      {
-        if (random(1) < 0.3)
-          return 0;
-        this.dry = true;
-        this.stuck = true;
-        this.setColor(color(0, 0, 80));
-        dry.push(this)
-        drySpots.add([this.pos.x, this.pos.y]);
-        return 2;
+        else
+        {
+          //If walker did not freeze, 
+          //First allow the seed to grow a little
+          if (tree.length > 100)
+          {
+            //Probability of Drying
+            //If we satisfy the probability, we are dry. else we walk.
+            if (random(1) < (1 - humidity) * prob)
+            {
+              this.dry = true;
+              this.stuck = true;
+              this.setColor(color(0, 0, 80));
+              dry.push(this)
+              drySpots.add([this.pos.x, this.pos.y]);
+              return 2;
+            }
+          }
+        }
       }
     }
     return 0;
