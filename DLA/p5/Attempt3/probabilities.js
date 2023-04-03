@@ -4,9 +4,9 @@ m_b1 = 0.3;
 m_C = 10;
 m_C2 = 0.3;
 
-let A = 10;
-let B = 0.5;
-let humidity = 0.3;//0-1(0 means no humidity, 1 means most)
+let A = 1;
+let B = 0.3;
+let humidity = 0.35;//0-1(0 means no humidity, 1 means most)
 
 //High humidity - Basically grows in a circle
 //Low Humidity - Drying, eventual stopping of growth
@@ -16,7 +16,7 @@ function getFrostProbability(x, y)
 {
     Ni = 0;
     weightedSum = 0;
-    L = 9;
+    L = 5;
     totalPointCount = (L - 1) * (L - 1);
     let halfCircle = floor(L / 2);
     for (let i = y - halfCircle; i <= y + halfCircle; i++)
@@ -41,10 +41,8 @@ function getFrostProbability(x, y)
 
     p = A * k + B;
 
-    // console.log(k)
     p = (p < 0) ? 0.01 : (p > 1) ? 1 : p;
     console.log("Prob: " + p)
-    // console.log(p)
     return p;
 }
 
