@@ -5,3 +5,4 @@
 # ignore shared libraries 
 *.so
 *.gif
+*.mp4
