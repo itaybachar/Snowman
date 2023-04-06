@@ -35,8 +35,10 @@ int main(int argc, char *argv[])
     Experiment dla(humidity, A, B, gridSize);
 
     // Run DLA
-    dla.Run(maxFrozenSites, snapshotInterval);
+    std::cout << "Hi" << std::endl;
 
+    dla.Run(maxFrozenSites, snapshotInterval);
+    std::cout << "Finished" << std::endl;
     // Save final growth, and export gif
     dla.SaveResults();
 

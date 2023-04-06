@@ -1,31 +1,42 @@
 #pragma once
-#include "../util/Util.h"
+#include "../util/Vec2.h"
 #include <vector>
 
 class Experiment
 {
 public:
-    Experiment(float humidity, float A, float B, uint32_t gridSize);
+    Experiment(double humidity, float A, float B, int gridSize);
     ~Experiment();
 
-    void Run(uint32_t maxFrozenSites = 1000, uint32_t snapshotInterval = 50);
+    void Run(int maxFrozenSites = 1000, int snapshotInterval = 50);
     void SaveResults();
+
+    inline int GetGridSize() { return m_gridSize; }
+    inline int **GetData() { return m_data; }
+
+public:
+    double humidity;
+    float A;
+    float B;
+    static constexpr int WET = 0;
+    static constexpr int DRY = 1;
+    static constexpr int FROZEN = 2;
 
 private:
     // Experiment Setup
-    uint32_t m_gridSize;
-
-    float m_humidity;
-    float m_A;
-    float m_B;
+    int m_gridSize;
+    int m_frozenSiteCount;
+	const int m_maxWalkers = 1;
+    int m_spawnRadius;
 
     // Experiment Variables
-    uint8_t **m_data;
-    uint64_t m_iterationCounter;
+    int **m_data;
+    int m_iterationCounter;
     std::vector<Vec2> m_walkers;
     Vec2 m_origin;
 
-    const uint8_t WET = 0;
-    const uint8_t DRY = 1;
-    const uint8_t FROZEN = 2;
+private:
+    void randomWalk(Vec2 &walker);
+    int walkerStatus(Vec2 walker);
+    Vec2 generateWalker();
 };
