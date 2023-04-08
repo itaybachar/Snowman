@@ -34,8 +34,8 @@ namespace Helper
     double FrostProbability(Vec2 walker, Experiment *e)
     {
         double weightedSum = 0.0;
-        int L = 5;
-        int totalPointCount = 0;
+        int L = 9;
+        int totalPointCount = (L-1)*(L-1);
         int halfCircle = L / 2;
 
         for (int j = walker.y - halfCircle; j <= walker.y + halfCircle; j++)
@@ -44,27 +44,30 @@ namespace Helper
                 continue;
             for (int i = walker.x - halfCircle; i <= walker.x + halfCircle; i++)
             {
+				totalPointCount++;
                 if (i < 0 || i >= e->GetGridSize())
                     continue;
-                totalPointCount++;
                 if (i != walker.x || j != walker.y)
                 {
-                    weightedSum += 1 / (float)walker.distSqrd({i, j});
+                    weightedSum += 1 / (double)walker.distSqrd({i, j});
                 }
             }
         }
 
-        double k = weightedSum / totalPointCount - (double)(L - 1.0) / (2.0 * L);
+		//std::cout << weightedSum << " "<< totalPointCount << std::endl;
+		//double k = weightedSum / totalPointCount - (double)(L - 1.0) / (2.0 * L);
+		double k = weightedSum / totalPointCount - (((double)totalPointCount - 2) / totalPointCount / 4.0);
         double p = e->A * k + e->B;
         p = (p < 0) ? 0.01 : (p > 1) ? 1
                                      : p;
-
+			
         return p;
     }
 
     double GenerateRandomVariable()
     {
-        return (double)rand() / RAND_MAX;
+		double out = (double)rand() / RAND_MAX;
+        return out;
     }
 
     int constrain(int val, int min, int max)
@@ -75,14 +78,13 @@ namespace Helper
 
     void GenerateBitmap(Experiment *e)
     {
-
         struct RGB
         {
             int r;
             int g;
             int b;
         } color;
-
+		color = { 0,0,0 };
         BmpImg img(e->GetGridSize(), e->GetGridSize());
 
         const int DRY = e->DRY;
@@ -94,7 +96,7 @@ namespace Helper
                 switch (e->GetData()[i][j])
                 {
                 case Experiment::DRY:
-                    color.r = 0;
+                    color.r = 255;
                     color.g = 0;
                     color.b = 0;
                     break;
@@ -104,23 +106,20 @@ namespace Helper
                     color.b = 250;
                     break;
                 case Experiment::FROZEN:
-                    color.r = 50;
-                    color.g = 178;
-                    color.b = 247;
+					color.r = 0;
+					color.g = 255;
+					color.b = 0;
+                  //  color.r = 50;
+                  //  color.g = 178;
+                  //  color.b = 247;
                     break;
                 }
 
                 img.set_pixel(j, i, color.r, color.g, color.b);
-
-                // for (int k = pwid * i; k < pwid * (i + 1); k++)
-                // {
-                //     for (int l = pwid * j; l < pwid * (j + 1); l++)
-                //         bmp_pixel_init(&img.img_pixels[k][l], color.r, color.g, color.b);
-                // }
             }
         }
         char str[1024];
-        sprintf_s(str, "dla-%d.bmp", bitmapCount++);
+        sprintf_s(str, "temp\\dla-%d.bmp", bitmapCount++);
         img.write(str);
     }
 }

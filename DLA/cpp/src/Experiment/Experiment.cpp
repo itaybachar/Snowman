@@ -3,21 +3,20 @@
 #include <cstdlib>
 #include <ctime>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
-
 #include <iostream>
+#define M_PI 3.14159265358979323846
 
 // Isotropy vs unisotropy
 //
 //
 //  High Humidity(A = 10 looks good)
-Experiment::Experiment(double humidity, float A, float B, int gridSize) : humidity(humidity),
+Experiment::Experiment(double humidity, double A, double B, int gridSize) : humidity(humidity),
                                                                               A(A),
                                                                               B(B),
                                                                               m_gridSize(gridSize),
                                                                               m_frozenSiteCount(0),
-                                                                              m_spawnRadius(5),
+                                                                              m_spawnRadius(15),
 	m_iterationCounter(0)
 {
     m_data = new int *[m_gridSize];
@@ -35,8 +34,6 @@ Experiment::Experiment(double humidity, float A, float B, int gridSize) : humidi
 
     // Random Seed
     std::srand(std::time(0));
-
-    //Helper::GenerateBitmap(this);
 }
 
 Experiment::~Experiment()
@@ -57,37 +54,54 @@ void Experiment::Run(int maxFrozenSites, int snapshotInterval)
     {
         m_walkers.push_back(generateWalker());
     }
-
+	bool needToSave = false;
+	int iterationsSinceLastStick = 0;
     while (totalFrozenCount < maxFrozenSites)
     {
-        if (totalFrozenCount % snapshotInterval == 0)
+        if (needToSave && totalFrozenCount % snapshotInterval == 0)
         {
-            // Save Current State
+			std::cout << totalFrozenCount << "/" << maxFrozenSites << std::endl;
+			Helper::GenerateBitmap(this);
+			needToSave = false;
         }
 
+		if (iterationsSinceLastStick >= MAX_INTERATION_WITH_NO_STICK)
+			break;
+
         // Walk
+		bool stuckOrFrozen = false;
         for (int i = m_walkers.size() - 1; i >= 0; i--)
         {
             randomWalk(m_walkers[i]);
             int status = walkerStatus(m_walkers[i]);
             m_data[m_walkers[i].y][m_walkers[i].x] = status;
-			std::cout << m_walkers[i].x << " " << m_walkers[i].y << std::endl;
-            // If walker is not still walking, remove it from list.
+
+			// If walker is not still walking, remove it from list.
             if (status != WET)
             {
-                std::cout << "Stuck: " << (int)status << std::endl;
-                Helper::GenerateBitmap(this);
+				if (status == FROZEN)
+				{
+					totalFrozenCount++;
+					needToSave = true;
+				}
+
                 if (m_walkers[i].distSqrd(m_origin) >= 0.8 * m_spawnRadius * m_spawnRadius)
-                    m_spawnRadius = m_spawnRadius++;
+                    m_spawnRadius += 2;
                 m_walkers.erase(m_walkers.begin() + i);
-            }
-        }
-        // std::cout << "walk" << std::endl;
+				stuckOrFrozen = true;
+			}
+		}
+
+		if (stuckOrFrozen)
+			iterationsSinceLastStick = 0;
+		else
+			iterationsSinceLastStick++;
 
         // Create new walkers as needed
         while (m_walkers.size() < m_maxWalkers)
             m_walkers.push_back(generateWalker());
     }
+	Helper::GenerateBitmap(this);
 }
 
 void Experiment::SaveResults()
@@ -105,10 +119,11 @@ void Experiment::randomWalk(Vec2 &walker)
         dir.y = directions[rand() % 3];
         if (attemptCounter++ > 1000)
             return;
-    } while ((walker.x + dir.x < 0 && walker.x + dir.x >= m_gridSize) &&
-             (walker.y + dir.y < 0 && walker.y + dir.y >= m_gridSize) &&
+    } while ((walker.x + dir.x < 0 || walker.x + dir.x >= m_gridSize) ||
+             (walker.y + dir.y < 0 || walker.y + dir.y >= m_gridSize) ||
              m_data[walker.y + dir.y][walker.x + dir.x] != WET); // Keep on generating until we land on wet spot
-    walker.x += dir.x;
+   
+	walker.x += dir.x;
     walker.y += dir.y;
 
     // Constrain to spawn radius
@@ -122,6 +137,7 @@ void Experiment::randomWalk(Vec2 &walker)
 
 int Experiment::walkerStatus(Vec2 walker)
 {
+	//std::cout << walker.x << " " << walker.y << std::	endl;;
     bool hasNeighbor = false;
     if (walker.y + 1 < m_gridSize && m_data[walker.y + 1][walker.x] == FROZEN)
         hasNeighbor = true;
@@ -134,13 +150,15 @@ int Experiment::walkerStatus(Vec2 walker)
 
     if (walker.x - 1 >= 0 && m_data[walker.y][walker.x - 1] == FROZEN)
         hasNeighbor = true;
-
+	
     if (!hasNeighbor)
         return WET;
+	//std::cout << "Has neighbor" << std::endl;
     // If position would cause a hole, continue walking.
     if (Helper::hasHoles(walker, this))
         return WET;
 
+	//std::cout << "No Hole" << std::endl;
     double p = Helper::FrostProbability(walker, this);
 
     if (Helper::GenerateRandomVariable() < p)
@@ -163,7 +181,7 @@ int Experiment::walkerStatus(Vec2 walker)
 
 Vec2 Experiment::generateWalker()
 {
-    double angle = Helper::GenerateRandomVariable() * (3.14 * 2);
+    double angle = Helper::GenerateRandomVariable() * (M_PI * 2);
     int x = std::cos(angle) * m_spawnRadius + m_origin.x;
     int y = std::sin(angle) * m_spawnRadius + m_origin.y;
 
