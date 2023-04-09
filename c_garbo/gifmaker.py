@@ -3,7 +3,6 @@ import moviepy.editor as mp
 from PIL import Image
 from ctypes import *
 from tqdm import tqdm
-from halo import Halo
 
 def make_gif(name, iters):
     frames = [Image.open(image) for image in glob.glob("./Snowman/c_garbo/pictemp/*.png")]
@@ -39,7 +38,7 @@ def frost(temp, humidity, len, iters, pwid, bias):
 
 if __name__ == "__main__":
     iters = 300
-    frost(-15, 60, 200, iters, 2, 0.4)
+    frost(-15, 53, 200, iters, 2, 0.6)
     convertToPng()
     make_gif("frAni", iters)
     delpictemp()
