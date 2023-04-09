@@ -1,0 +1,11 @@
+﻿  Experiment.cpp
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(37,25): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(56,29): warning C4018: '<': signed/unsigned mismatch
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(88,33): warning C4018: '<': signed/unsigned mismatch
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(167,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  main.cpp
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(168,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  Helper.cpp
+  Generating Code...
+C:\dev\Snowman\DLA\cpp\src\main.cpp(31,42): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+  FrostGrowthDLA.vcxproj -> C:\dev\Snowman\DLA\FrostGrowthDLA\Debug\FrostGrowthDLA.exe

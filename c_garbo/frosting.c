@@ -121,8 +121,11 @@ int flu_freeze(Frode node){
 
     double p = 10.2598+(node.humidity/255.0)*-42.6528;
     double prob = 1/((1+exp(p))*(node.friegh + 1.41421*node.diag));
+    // // divide prob by frozen neighbors
+    // prob /= node.friegh;
+    // printf("Prob:\t%f\n", prob);
 
-    // double prob = node.humidity/(255.0*(node.friegh + 1.41421*node.diag)); 
+
     double chance = genprob(1.0);
 
     return (chance < prob);
