@@ -119,24 +119,11 @@ int indep_freeze(int temp){
 // influenced freezing of nodes, runs on WET nodes
 int flu_freeze(Frode node){
 
-    // prob is reduced if there are multiple freighs (multiple ice bridges being made)
-    // double prob = ((double)(node.humidity))/(255.0 * node.friegh);
-
-    double weight = 1.0;
-
-    // if(node.friegh) weight*=node.friegh;
-    // if(node.diag) weight*=2 * node.diag;
-
-    // Logictic curve prob
-    double p = 11.6677+(node.humidity/255.0)*-49.0666;
+    double p = 10.2598+(node.humidity/255.0)*-42.6528;
     double prob = 1/((1+exp(p))*(node.friegh + 1.41421*node.diag));
-    // // divide prob by frozen neighbors
-    // prob /= node.friegh;
-    // printf("Prob:\t%f\n", prob);
 
-
+    // double prob = node.humidity/(255.0*(node.friegh + 1.41421*node.diag)); 
     double chance = genprob(1.0);
-    // printf("Chance:\t%f\n", chance);
 
     return (chance < prob);
 } 
