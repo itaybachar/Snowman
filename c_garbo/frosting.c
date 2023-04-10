@@ -24,6 +24,7 @@ typedef struct Frode{
     char state;   // current state of node
     char friegh; // frozen horiz or vert neighbors -> freigh, max 4
     char diag; // diagonal frozen neighbors -> max 4
+    char dry;
 } Frode;
 
 typedef struct Plate{
@@ -176,6 +177,20 @@ void addFreigh(Plate * plate, int i, int j, int len){
     
 }
 
+void addDry(Plate * plate, int i, int j, int len){
+    for (int k  = i-1; k < i+2; k++){
+        if (k<0 || k>=len) continue;
+
+        for (int m = j-1; m < j+2; m++){
+            if (m<0 || m>=len) continue;
+
+            if(!(k==i && m==j)) {
+                plate->prev[k][m].dry++;
+            }
+        }
+    }
+}
+
 void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias, int reduxInd, double reduxPara){
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
@@ -192,13 +207,13 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter, double 
                 }
 
                 if(!remHum && (cpy.friegh || cpy.diag) && (genprob(1.0) < bias)){
+                    remHum=1;
                     if(flu_freeze(cpy, iter, reduxInd, reduxPara)){
                         plate->prev[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
-                        remHum = 1;
                     }else{
                         plate->prev[i][j].state = DRY;
-                        remHum = 1;
+                        addDry(plate, i, j, len);
                     }
                 }
 
