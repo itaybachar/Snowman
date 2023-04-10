@@ -31,14 +31,14 @@ def delpictemp():
     for j in tqdm(jpegs, desc="Delete PNGs"):
         os.remove(j)
 
-def frost(temp, humidity, len, iters, pwid, bias):
+def frost(temp, humidity, len, iters, pwid, bias, reduxind, reduxPara):
     fr = CDLL("./Snowman/c_garbo/frosting.so")
     fr.frost.argtypes = (c_int, c_int, c_int, c_int, c_int, c_double)
-    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias))
+    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias), c_int(reduxind), c_double(reduxPara))
 
 if __name__ == "__main__":
-    iters = 300
-    frost(-15, 53, 200, iters, 2, 0.6)
+    iters = 200
+    frost(-15, 70, 200, iters, 2, 0.6, 1, 0.3)
     convertToPng()
     make_gif("frAni", iters)
     delpictemp()

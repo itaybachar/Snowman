@@ -31,6 +31,23 @@ typedef struct Plate{
     Frode ** prev;
 } Plate;
 
+// Takes unnnessary parameters so that there is a general form amongst all humidity reduction functions
+double constHumidity(int iter, double reduxPara){
+    return 0.0; // literally does nothing but returns zero, do not compile with -Wall
+}
+
+double linearCentHumidty(int iter, double reduxPara){
+    return -iter/100.0;
+}
+
+double linearGenHumidity(int iter, double reduxPara){
+    return -(reduxPara*iter)/100.0;
+}
+
+// Array of function pointers to the above humidty reduction formulas to simplify fluFreeze function
+double (*humReduce[])(int, double) = {&constHumidity, &linearCentHumidty, &linearGenHumidity};
+
+
 // prints given Frode
 void prode(Plate plate, int i, int j){
     Frode temp = plate.curr[i][j];
@@ -117,9 +134,11 @@ int indep_freeze(int temp){
 }
 
 // influenced freezing of nodes, runs on WET nodes
-int flu_freeze(Frode node){
+int flu_freeze(Frode node, int iter, int reduxInd, double reduxPara){
 
-    double p = 10.2598+(node.humidity/255.0)*-42.6528;
+    double redux = (node.humidity/255.0) + (humReduce[reduxInd])(iter, reduxPara);
+    // logistic line fitting
+    double p = 10.2598+((redux>0.0)?redux:0.0)*-42.6528; 
     double prob = 1/((1+exp(p))*(node.friegh + 1.41421*node.diag));
     // // divide prob by frozen neighbors
     // prob /= node.friegh;
@@ -157,7 +176,7 @@ void addFreigh(Plate * plate, int i, int j, int len){
     
 }
 
-void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias){
+void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias, int reduxInd, double reduxPara){
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
             Frode cpy = plate->curr[i][j];
@@ -173,7 +192,7 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter, double 
                 }
 
                 if(!remHum && (cpy.friegh || cpy.diag) && (genprob(1.0) < bias)){
-                    if(flu_freeze(cpy)){
+                    if(flu_freeze(cpy, iter, reduxInd, reduxPara)){
                         plate->prev[i][j].state = FROZEN;
                         addFreigh(plate, i, j, len);
                         remHum = 1;
@@ -279,10 +298,10 @@ void makebitmap(Plate * plate, int len, int iter, int pwid){
     system(command);
 }
 
-void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias){
+void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias, int reduxInd, double reduxPara){
     for (int i = 0; i < iter; i++)
     {
-        freezing(plate, temp, humidity, len, i, bias);
+        freezing(plate, temp, humidity, len, i, bias, reduxInd, reduxPara);
         makebitmap(plate, len, i, pwid);
         show_status(((i+1)*100.0)/iter, "Freezing", (i==iter-1));
     }
@@ -290,12 +309,12 @@ void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int 
 }
 
 // python hook function
-int frost(int temp, int humidity, int len, int iters, int pwid, double bias){
+int frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
     AHUM = len*len*humidity;
 
     Plate * plate = newplate(len, humidity);
 
-    iterfreeze(plate, temp, humidity, len, iters, pwid, bias);
+    iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara);
     freeplate(plate, len);
     return 1;
 }
@@ -319,7 +338,7 @@ int main(int argc, char**argv){
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
     // prstate(plate, len);
-    iterfreeze(plate, temp, humidity, len, iters, 1, 1.1);
+    iterfreeze(plate, temp, humidity, len, iters, 1, 1.1, 0, 100.0);
     // prstate(plate, len); 
 
     freeplate(plate, len);
