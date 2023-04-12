@@ -32,6 +32,17 @@ typedef struct Plate{
     Frode ** prev;
 } Plate;
 
+typedef struct Box{
+    int side;
+    int nonwet; // count of the covers for frozen and dry nodes
+    int frozen; // count of the cover for JUST frozen nodes
+} Box;
+
+typedef struct BoxCountNode{
+    int nonwet;
+    int frozen;
+} BoxCountNode;
+
 // Takes unnnessary parameters so that there is a general form amongst all humidity reduction functions
 double constHumidity(int iter, double reduxPara){
     return 0.0; // literally does nothing but returns zero, do not compile with -Wall
@@ -90,6 +101,7 @@ Frode** allocfrodes(int len, unsigned char hum){
             t[i][j].state = WET;
             t[i][j].friegh = 0;
             t[i][j].diag = 0;
+            t[i][j].dry = 0;
         }
     }
 
@@ -186,6 +198,47 @@ void addDry(Plate * plate, int i, int j, int len){
 
             if(!(k==i && m==j)) {
                 plate->prev[k][m].dry++;
+            }
+        }
+    }
+}
+
+
+
+BoxCountNode** makeBoxCounter(int plateLen, int boxWidth){
+    int boxCountLen = (plateLen/boxWidth);
+    BoxCountNode** p = malloc(sizeof(BoxCountNode*) * boxCountLen);
+    for(int i = 0; i < boxCountLen; i++){
+        p[i] = malloc(sizeof(BoxCountNode) * boxCountLen);
+        for(int j = 0; j < boxCountLen; j++){
+            p[i][j].nonwet = 0;
+            p[i][j].frozen = 0;
+        }
+    }
+    return p;
+}
+
+void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
+    BoxCountNode*** boxGrids = malloc(sizeof(int**) * boxNum);
+
+    for(int i = 0; i < boxNum; i++){
+        boxGrids[i] = makeBoxCounter(len, Boxes[i].side);
+    }
+
+    for(int i = 0; i < len; i++){
+        for(int j = 0; j < len; j++){
+            Frode cpy = plate->curr[i][j];
+
+            if(cpy.state == WET) continue;
+
+            for(int k = 0; k < boxNum; k++){
+                int boxI = i/Boxes[k].side, boxJ = j/Boxes[k].side;
+                if(cpy.state == FROZEN){
+                    Boxes[k].frozen += !(boxGrids[k][boxI][boxJ].frozen);
+                    boxGrids[k][boxI][boxJ].frozen++;
+                }
+                Boxes[k].nonwet += !(boxGrids[k][boxI][boxJ].nonwet);
+                boxGrids[k][boxI][boxJ].nonwet++;
             }
         }
     }
@@ -325,11 +378,23 @@ void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int 
 
 // python hook function
 int frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
+    len += 16 - (len%16); // Rounds length up to closest multiple of 16 (this is for box counting) 
     AHUM = len*len*humidity;
 
     Plate * plate = newplate(len, humidity);
 
+    // Making boxes for widths 2,4,8,16
+    int boxNum = 4;
+    Box* Boxes = malloc(4*sizeof(Box));
+    for(int i = 0; i < boxNum; i++){
+        Boxes[i].side = 2 << i;
+        Boxes[i].nonwet = 0;
+        Boxes[i].frozen = 0;
+    }
+
     iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara);
+
+    boxCount(plate, len, Boxes, boxNum);
     freeplate(plate, len);
     return 1;
 }
