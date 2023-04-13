@@ -43,6 +43,11 @@ typedef struct BoxCountNode{
     int frozen;
 } BoxCountNode;
 
+typedef struct LinearReg{
+    double a;
+    double b;
+} LinearReg;
+
 // Takes unnnessary parameters so that there is a general form amongst all humidity reduction functions
 double constHumidity(int iter, double reduxPara){
     return 0.0; // literally does nothing but returns zero, do not compile with -Wall
@@ -203,8 +208,6 @@ void addDry(Plate * plate, int i, int j, int len){
     }
 }
 
-
-
 BoxCountNode** makeBoxCounter(int plateLen, int boxWidth){
     int boxCountLen = (plateLen/boxWidth);
     BoxCountNode** p = malloc(sizeof(BoxCountNode*) * boxCountLen);
@@ -218,6 +221,7 @@ BoxCountNode** makeBoxCounter(int plateLen, int boxWidth){
     return p;
 }
 
+// this function leaks memory, watch out
 void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
     BoxCountNode*** boxGrids = malloc(sizeof(int**) * boxNum);
 
@@ -376,6 +380,33 @@ void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int 
 
 }
 
+void BoxLinearReg(LinearReg* lireg, int liLen, Box* Boxes, int boxNum){
+    double sumX = 0.0, sumX2 = 0.0; // values used for both
+    double nwY = 0.0, nwXY = 0.0; // nonwet values
+    double frY = 0.0, frXY = 0.0; // frozen values
+
+    for(int i = 0; i < boxNum; i++){
+        double logInvSide = log(1.0/Boxes[i].side), logNWcount = log(1.0*Boxes[i].nonwet), logFRcount = log(1.0*Boxes[i].frozen);
+        
+        sumX += logInvSide; sumX2 += logInvSide*logInvSide; 
+        
+        nwY += logNWcount; nwXY += logInvSide*logNWcount;
+
+        frY += logFRcount; frXY += logInvSide*logFRcount;
+    }
+
+    // nonwet regression values
+    double nwB = (boxNum*nwXY - sumX*nwY)/(boxNum*sumX2 - sumX*sumX);
+    lireg[0].a = (nwY - nwB*sumX)/boxNum;
+    lireg[0].b = nwB;
+
+    //frozen regression values
+    double frB = (boxNum*frXY - sumX*frY)/(boxNum*sumX2 - sumX*sumX);
+    lireg[1].a = (frY - frB*sumX)/boxNum;
+    lireg[1].b = frB;
+
+}
+
 // python hook function
 int frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
     len += 16 - (len%16); // Rounds length up to closest multiple of 16 (this is for box counting) 
@@ -392,23 +423,30 @@ int frost(int temp, int humidity, int len, int iters, int pwid, double bias, int
         Boxes[i].frozen = 0;
     }
 
-    iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara);
+    // 0 --> nonwet fractal dimension, 1 --> frozen fractal dimension
+    // does not need initialization since garbage data will be over written in linear
+    // regression function
+    LinearReg lireg[2];
 
+    iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara);
+    
     boxCount(plate, len, Boxes, boxNum);
+    BoxLinearReg(lireg, 2, Boxes, boxNum);
+    printf("\nBox-counting Dimensions:\n\tNonwet: %f\n\tFrozen: %f\n", lireg[0].b, lireg[1].b);
     freeplate(plate, len);
     return 1;
 }
 
 int main(int argc, char**argv){
     // inputs are temp and humidity
-    int temp = atoi(argv[1]);
-    int humidity = atoi(argv[2]);
-    int len = atoi(argv[3]);
-    int iters = atoi(argv[4]);
+    // int temp = atoi(argv[1]);
+    // int humidity = atoi(argv[2]);
+    // int len = atoi(argv[3]);
+    // int iters = atoi(argv[4]);
 
-    AHUM = len*len*humidity;
+    // AHUM = len*len*humidity;
 
-    Plate * plate = newplate(len, humidity);
+    // Plate * plate = newplate(len, humidity);
     // Frode** plate = allocplate(side_len, humidity);
 
 
@@ -418,9 +456,11 @@ int main(int argc, char**argv){
     // p->friegh = 1;
     // printf("Succ:\t%i\n", flu_freeze(*p));
     // prstate(plate, len);
-    iterfreeze(plate, temp, humidity, len, iters, 1, 1.1, 0, 100.0);
+    // iterfreeze(plate, temp, humidity, len, iters, 1, 1.1, 0, 100.0);
     // prstate(plate, len); 
 
-    freeplate(plate, len);
+    // freeplate(plate, len);
+    frost(-15, 65, 200, 100, 2, 0.6, 0, 0.3);
+    return 0;
 }
 
