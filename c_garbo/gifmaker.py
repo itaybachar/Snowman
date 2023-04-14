@@ -3,7 +3,6 @@ import moviepy.editor as mp
 from PIL import Image
 from ctypes import *
 from tqdm import tqdm
-from halo import Halo
 
 def make_gif(name, iters):
     frames = [Image.open(image) for image in glob.glob("./Snowman/c_garbo/pictemp/*.png")]
@@ -32,14 +31,18 @@ def delpictemp():
     for j in tqdm(jpegs, desc="Delete PNGs"):
         os.remove(j)
 
-def frost(temp, humidity, len, iters, pwid, bias):
+def frost(temp, humidity, len, iters, pwid, bias, reduxind, reduxPara):
     fr = CDLL("./Snowman/c_garbo/frosting.so")
     fr.frost.argtypes = (c_int, c_int, c_int, c_int, c_int, c_double)
-    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias))
+    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias), c_int(reduxind), c_double(reduxPara))
 
 if __name__ == "__main__":
-    iters = 300
-    frost(-15, 60, 200, iters, 2, 0.4)
+    iters = 100
+    pwid = 2
+    bias = 0.5
+    reduxFunc = 0 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear) 
+    reduxPara = 0.3
+    frost(-15, 63, 200, iters, pwid, bias, reduxFunc, reduxPara)
     convertToPng()
     make_gif("frAni", iters)
     delpictemp()
