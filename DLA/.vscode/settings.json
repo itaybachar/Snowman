@@ -2,6 +2,7 @@
     "files.associations": {
         "xstring": "cpp",
         "iosfwd": "cpp",
-        "libbmp.h": "c"
+        "libbmp.h": "c",
+        "string": "cpp"
     }
 }

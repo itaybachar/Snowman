@@ -1,0 +1,11 @@
+﻿  libbmp.cpp
+  Experiment.cpp
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(36,25): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(73,42): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(185,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  main.cpp
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(186,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  Helper.cpp
+  Generating Code...
+C:\dev\Snowman\DLA\cpp\src\main.cpp(32,42): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+  FrostGrowthDLA.vcxproj -> C:\dev\Snowman\DLA\FrostGrowthDLA\x64\Debug\FrostGrowthDLA.exe

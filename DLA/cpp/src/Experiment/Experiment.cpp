@@ -16,7 +16,7 @@ Experiment::Experiment(double humidity, double A, double B, int gridSize) : humi
                                                                               B(B),
                                                                               m_gridSize(gridSize),
                                                                               m_frozenSiteCount(0),
-                                                                              m_spawnRadius(15),
+                                                                              m_spawnRadius(100), // 15
 	m_iterationCounter(0)
 {
     m_data = new int *[m_gridSize];
@@ -30,8 +30,9 @@ Experiment::Experiment(double humidity, double A, double B, int gridSize) : humi
     m_origin = {m_gridSize / 2,
                 m_gridSize / 2};
 
-    m_data[m_origin.y][m_origin.x] = FROZEN;
-
+//    m_data[m_origin.y][m_origin.x] = FROZEN;
+	m_data[m_origin.y][m_origin.x-50] = FROZEN;
+	m_data[m_origin.y][m_origin.x+50] = FROZEN;
     // Random Seed
     std::srand(std::time(0));
 }

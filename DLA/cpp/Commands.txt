@@ -1,0 +1,7 @@
+Compile:
+g++ -c src\main.cpp src\Experiment\Experiment.cpp src\util\Helper.cpp src\bmp\libbmp.cpp
+Link:
+g++ -fPIC -shared -o DLAFrost.so Experiment.o Helper.o libbmp.o main.o
+g++ -m32 -shared -o DLAFrost.so src\main.cpp src\Experiment\Experiment.cpp src\util\Helper.cpp src\bmp\libbmp.cpp
+
+DO THIS IN THE CPP FOLDER
