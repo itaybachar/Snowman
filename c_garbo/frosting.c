@@ -238,7 +238,9 @@ void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
             for(int k = 0; k < boxNum; k++){
                 int boxI = i/Boxes[k].side, boxJ = j/Boxes[k].side;
                 if(cpy.state == FROZEN){
-                    Boxes[k].frozen += !(boxGrids[k][boxI][boxJ].frozen);
+                    // Bit of a trick, only adds to 'frozen' box count when there previously wasn't a frozen node
+                    // in that box, ensures we dont double count a box. Same trick used below for `nonwet`
+                    Boxes[k].frozen += !(boxGrids[k][boxI][boxJ].frozen);  
                     boxGrids[k][boxI][boxJ].frozen++;
                 }
                 Boxes[k].nonwet += !(boxGrids[k][boxI][boxJ].nonwet);
@@ -287,37 +289,6 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter, double 
     }
 
     switchplates(plate);
-}
-
-
-// Print current state of plate (curr, prev)
-void prstate(Plate* plate, int len){
-    for(int i = 0; i < len; i++){
-        for(int j = 0; j < 2*len; j++){
-            char c;
-
-            if(j == len) printf(" ");
-            Frode ** whichPlate = (j < len)?plate->curr:plate->prev;
-            int m = (j < len)?j:j-len;
-
-            switch (whichPlate[i][m].state)
-            {
-                case DRY:
-                    c = 'X';
-                    break;
-                case WET:
-                    c = '~';
-                    break;
-                case FROZEN:
-                    c = '#';
-                    break;
-            }
-
-            printf("%c", c);
-        }
-        printf("\n");
-    }
-    printf("\n");
 }
 
 void makebitmap(Plate * plate, int len, int iter, int pwid){
