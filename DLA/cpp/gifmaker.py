@@ -32,19 +32,27 @@ def delpictemp():
     for j in tqdm(jpegs, desc="Delete PNGs"):
         os.remove(j)
 
-def frost(humidity, A, B, gridSize, maxFrozenSites, snapshotInterval):
+def frost(humidity, A, gridSize, maxFrozenSites, snapshotInterval):
     fr = CDLL(".\\FrostGrowthDLA.dll")
-    fr.SimulateFrost.argtypes = (c_double, c_double, c_double, c_int, c_int, c_int)
-    fr.SimulateFrost(c_double(humidity), c_double(A), c_double(B), c_int(gridSize), c_int(maxFrozenSites), c_int(snapshotInterval))
+    fr.SimulateFrost.argtypes = (c_double, c_double, c_int, c_int, c_int)
+    fr.SimulateFrost(c_double(humidity), c_double(A), c_int(gridSize), c_int(maxFrozenSites), c_int(snapshotInterval))
+
+def frostPro(humidity, A, gridSize, maxFrozenSites, snapshotInterval, nuclei,nucleusCount):
+    fr = CDLL(".\\FrostGrowthDLA.dll")
+    fr.SimulateFrostPro.argtypes = (c_double, c_double, c_int, c_int, c_int,POINTER(c_int),c_int)
+    fr.SimulateFrostPro(c_double(humidity), c_double(A), c_int(gridSize),
+                         c_int(maxFrozenSites), c_int(snapshotInterval),
+                         (c_int*(nucleusCount*2))(*nuclei),c_int(nucleusCount))
 
 if __name__ == "__main__":
-    humidity = 0.5
+    humidity = 0.9
     A = 3
-    B = 0.7
     gridSize = 500
     maxFrozenSites = 75000
     snapshotInterval = 750
-    frost(humidity,A,B,gridSize,maxFrozenSites,snapshotInterval)
+    nucleationSites = [100,150,250,250,350,350]
+    frostPro(humidity,A,gridSize,maxFrozenSites,snapshotInterval,nucleationSites,int(len(nucleationSites)/2))
+    #frost(humidity,A,gridSize,maxFrozenSites,snapshotInterval)
     convertToPng()
-    make_gif("sim_{}_{}_{}".format(humidity,A,B))
+    make_gif("sim_{}_{}".format(humidity,A))
     delpictemp()
