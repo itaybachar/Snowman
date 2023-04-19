@@ -1,0 +1,12 @@
+﻿  Experiment.cpp
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(34,22): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(112,42): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(237,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\dev\Snowman\DLA\cpp\src\Experiment\Experiment.cpp(238,11): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+     Creating library C:\dev\Snowman\DLA\FrostGrowthDLA\x64\Release\FrostGrowthDLA.lib and object C:\dev\Snowman\DLA\FrostGrowthDLA\x64\Release\FrostGrowthDLA.exp
+  Generating code
+  2 of 270 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  FrostGrowthDLA.vcxproj -> C:\dev\Snowman\DLA\FrostGrowthDLA\x64\Release\FrostGrowthDLA.dll
