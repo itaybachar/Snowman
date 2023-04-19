@@ -34,18 +34,21 @@ def delpictemp():
 def frost(temp, humidity, len, iters, pwid, bias, reduxind, reduxPara):
     fr = CDLL("./Snowman/c_garbo/frosting.so")
     fr.frost.argtypes = (c_int, c_int, c_int, c_int, c_int, c_double)
+    fr.frost.restype = POINTER(c_int)
     fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias), c_int(reduxind), c_double(reduxPara))
 
 if __name__ == "__main__":
     temp = -15 # Celsius
-    humidity = 60 # humidity out of 255
+    humidity = 57 # humidity out of 255
     len = 200 # Creates len by len square array
     iters = 200 # numebr of iterations to do
     pwid = 2 # pixel width, makes teh image have more pixels so its easier to see
     bias = 0.5 # bias for running the random function
     reduxFunc = 0 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear) 
     reduxPara = 0.3
-    frost(temp, humidity, len, iters, pwid, bias, reduxFunc, reduxPara)
+    
+    boxDimensions = POINTER(c_int) 
+    boxDimensions = frost(temp, humidity, len, iters, pwid, bias, reduxFunc, reduxPara)
     convertToPng()
     make_gif("frAni", iters)
     delpictemp()
