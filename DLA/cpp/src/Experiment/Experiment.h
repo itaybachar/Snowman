@@ -5,7 +5,7 @@
 class Experiment
 {
 public:
-    Experiment(double humidity, double A, int gridSize);
+    Experiment(double humidity, double A, int gridSize, int spawnRadius);
     ~Experiment();
 
 	void Run(int maxFrozenSites = 1000, int snapshotInterval = 50, int nuclei[] = nullptr, int nucleusCount = 1);
@@ -38,5 +38,5 @@ private:
 private:
     void randomWalk(Vec2& walker, int walkerIndex, int* nuclei);
     int walkerStatus(Vec2 walker);
-    Vec2 generateWalker(int* nuclei);
+    Vec2 generateWalker();
 };
