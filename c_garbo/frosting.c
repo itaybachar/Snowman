@@ -143,7 +143,7 @@ void freeplate(Plate * p, int len){
 
 // independent freezing of nodes
 int indep_freeze(int temp){
-    double p = 11.6379+temp*0.362419;
+    double p = 11.8321+temp*0.355963;
     double prob = 1/(1+exp(p));
 
     double chance = genprob(1.0);
@@ -221,6 +221,14 @@ BoxCountNode** makeBoxCounter(int plateLen, int boxWidth){
     return p;
 }
 
+void freeBoxCounter(BoxCountNode** boxGrid, int plateLen, int boxWidth){
+    int boxCountLen = (plateLen/boxWidth);
+    for(int i = 0; i < boxCountLen; i++){
+        free(boxGrid[i]);
+    }
+    free(boxGrid);
+}
+
 // this function leaks memory, watch out
 void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
     BoxCountNode*** boxGrids = malloc(sizeof(int**) * boxNum);
@@ -238,7 +246,9 @@ void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
             for(int k = 0; k < boxNum; k++){
                 int boxI = i/Boxes[k].side, boxJ = j/Boxes[k].side;
                 if(cpy.state == FROZEN){
-                    Boxes[k].frozen += !(boxGrids[k][boxI][boxJ].frozen);
+                    // Bit of a trick, only adds to 'frozen' box count when there previously wasn't a frozen node
+                    // in that box, ensures we dont double count a box. Same trick used below for `nonwet`
+                    Boxes[k].frozen += !(boxGrids[k][boxI][boxJ].frozen);  
                     boxGrids[k][boxI][boxJ].frozen++;
                 }
                 Boxes[k].nonwet += !(boxGrids[k][boxI][boxJ].nonwet);
@@ -248,7 +258,13 @@ void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
     }
 }
 
-void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias, int reduxInd, double reduxPara){
+void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias, int reduxInd, double reduxPara, Box* Boxes, int boxNum){
+    BoxCountNode*** boxGrids = malloc(sizeof(int**) * boxNum);
+
+    for(int i = 0; i < boxNum; i++){
+        boxGrids[i] = makeBoxCounter(len, Boxes[i].side);
+    }
+    
     for(int i = 0; i < len; i++){
         for(int j = 0; j < len; j++){
             Frode cpy = plate->curr[i][j];
@@ -282,42 +298,28 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter, double 
                 }
             }else{
                 plate->prev[i][j].state = plate->curr[i][j].state;
+
+                for(int k = 0; k < boxNum; k++){
+                    int boxI = i/Boxes[k].side, boxJ = j/Boxes[k].side;
+                    if(cpy.state == FROZEN){
+                        // Bit of a trick, only adds to 'frozen' box count when there previously wasn't a frozen node
+                        // in that box, ensures we dont double count a box. Same trick used below for `nonwet`
+                        Boxes[k].frozen += !(boxGrids[k][boxI][boxJ].frozen);  
+                        boxGrids[k][boxI][boxJ].frozen++;
+                    }
+                    Boxes[k].nonwet += !(boxGrids[k][boxI][boxJ].nonwet);
+                    boxGrids[k][boxI][boxJ].nonwet++;
+                }
             }
         }
     }
+
+    for(int i = 0; i < boxNum; i++){
+        freeBoxCounter(boxGrids[i], len, Boxes[i].side);
+    }
+    free(boxGrids);
 
     switchplates(plate);
-}
-
-
-// Print current state of plate (curr, prev)
-void prstate(Plate* plate, int len){
-    for(int i = 0; i < len; i++){
-        for(int j = 0; j < 2*len; j++){
-            char c;
-
-            if(j == len) printf(" ");
-            Frode ** whichPlate = (j < len)?plate->curr:plate->prev;
-            int m = (j < len)?j:j-len;
-
-            switch (whichPlate[i][m].state)
-            {
-                case DRY:
-                    c = 'X';
-                    break;
-                case WET:
-                    c = '~';
-                    break;
-                case FROZEN:
-                    c = '#';
-                    break;
-            }
-
-            printf("%c", c);
-        }
-        printf("\n");
-    }
-    printf("\n");
 }
 
 void makebitmap(Plate * plate, int len, int iter, int pwid){
@@ -370,16 +372,6 @@ void makebitmap(Plate * plate, int len, int iter, int pwid){
     system(command);
 }
 
-void iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias, int reduxInd, double reduxPara){
-    for (int i = 0; i < iter; i++)
-    {
-        freezing(plate, temp, humidity, len, i, bias, reduxInd, reduxPara);
-        makebitmap(plate, len, i, pwid);
-        show_status(((i+1)*100.0)/iter, "Freezing", (i==iter-1));
-    }
-
-}
-
 void BoxLinearReg(LinearReg* lireg, int liLen, Box* Boxes, int boxNum){
     double sumX = 0.0, sumX2 = 0.0; // values used for both
     double nwY = 0.0, nwXY = 0.0; // nonwet values
@@ -407,8 +399,29 @@ void BoxLinearReg(LinearReg* lireg, int liLen, Box* Boxes, int boxNum){
 
 }
 
+int* iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias, int reduxInd, double reduxPara, Box* Boxes, int boxNum){
+    int* boxDimensions = malloc(2*iter*sizeof(int));
+
+    // 0 --> nonwet fractal dimension, 1 --> frozen fractal dimension
+    // does not need initialization since garbage data will be over written in linear
+    // regression function
+    LinearReg lireg[2];
+
+    for (int i = 0; i < iter; i++)
+    {
+        freezing(plate, temp, humidity, len, i, bias, reduxInd, reduxPara, Boxes, boxNum);
+        BoxLinearReg(lireg, 2, Boxes, boxNum);
+        boxDimensions[i] = lireg[0].b;
+        boxDimensions[iter+i] = lireg[1].b;
+        makebitmap(plate, len, i, pwid);
+        show_status(((i+1)*100.0)/iter, "Freezing", (i==iter-1));
+    }
+
+    return boxDimensions;
+}
+
 // python hook function
-int frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
+int* frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
     len += 16 - (len%16); // Rounds length up to closest multiple of 16 (this is for box counting) 
     AHUM = len*len*humidity;
 
@@ -428,13 +441,13 @@ int frost(int temp, int humidity, int len, int iters, int pwid, double bias, int
     // regression function
     LinearReg lireg[2];
 
-    iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara);
+    int* res = iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara, Boxes, boxNum);
     
-    boxCount(plate, len, Boxes, boxNum);
-    BoxLinearReg(lireg, 2, Boxes, boxNum);
+    // boxCount(plate, len, Boxes, boxNum);
+    // BoxLinearReg(lireg, 2, Boxes, boxNum);
     printf("\nBox-counting Dimensions:\n\tNonwet: %f\n\tFrozen: %f\n", lireg[0].b, lireg[1].b);
     freeplate(plate, len);
-    return 1;
+    return res;
 }
 
 int main(int argc, char**argv){
