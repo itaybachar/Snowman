@@ -48,9 +48,10 @@ if __name__ == "__main__":
     reduxFunc = 0 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear) 
     reduxPara = 0.3
     
-    # The C code returns a pointer to an array of the box dimensions for for every single iteration
-    # for the calcultion including both frozen and dry node (nonwetDim) and just frozen nodes (frozDim)
-    boxDimensions = POINTER(c_int) 
+    # The C code returns a pointer to an array of the box dimensions for every single iteration
+    # of the calcultion including both frozen and dry node (nonwetDim) and just frozen nodes (frozDim)
+    # First half of the array are the nonwet values, second half are the frozen values
+    boxDimensions = POINTER(c_double) 
     boxDimensions = frost(temp, humidity, len, iters, pwid, bias, reduxFunc, reduxPara)
     nonwetDim = boxDimensions[:iters]
     frozDim = boxDimensions[iters:2*iters]
