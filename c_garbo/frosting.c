@@ -259,7 +259,7 @@ void boxCount(Plate* plate, int len, Box* Boxes, int boxNum){
 }
 
 void freezing(Plate* plate, char temp, char humidity, int len, int iter, double bias, int reduxInd, double reduxPara, Box* Boxes, int boxNum){
-    BoxCountNode*** boxGrids = malloc(sizeof(int**) * boxNum);
+    BoxCountNode*** boxGrids = malloc(sizeof(BoxCountNode**) * boxNum);
 
     for(int i = 0; i < boxNum; i++){
         boxGrids[i] = makeBoxCounter(len, Boxes[i].side);
@@ -314,10 +314,12 @@ void freezing(Plate* plate, char temp, char humidity, int len, int iter, double 
         }
     }
 
-    for(int i = 0; i < boxNum; i++){
-        freeBoxCounter(boxGrids[i], len, Boxes[i].side);
-    }
-    free(boxGrids);
+    // Running this code causes a crash (most likely freeing memory twice some where) but I dont know what to fix
+    // Will have to live with the memory leak for now
+    // for(int i = 0; i < boxNum; i++){
+    //     freeBoxCounter(boxGrids[i], len, Boxes[i].side);
+    // }
+    // free(boxGrids);
 
     switchplates(plate);
 }
@@ -366,9 +368,9 @@ void makebitmap(Plate * plate, int len, int iter, int pwid){
     bmp_img_write (&img, filename);
 	bmp_img_free (&img);
 
-    char command[50] = "move ";
+    char command[64] = "move ";
     strcat(command, filename);
-    strcat(command, " Snowman\\c_garbo\\pictemp >NUL");
+    strcat(command, " Snowman\\c_garbo\\pictemp >NUL\0");
     system(command);
 }
 
@@ -399,8 +401,8 @@ void BoxLinearReg(LinearReg* lireg, int liLen, Box* Boxes, int boxNum){
 
 }
 
-int* iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias, int reduxInd, double reduxPara, Box* Boxes, int boxNum){
-    int* boxDimensions = malloc(2*iter*sizeof(int));
+double* iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int pwid, double bias, int reduxInd, double reduxPara, Box* Boxes, int boxNum){
+    double* boxDimensions = malloc(2*iter*sizeof(int));
 
     // 0 --> nonwet fractal dimension, 1 --> frozen fractal dimension
     // does not need initialization since garbage data will be over written in linear
@@ -421,7 +423,7 @@ int* iterfreeze(Plate * plate, char temp, char humidity, int len, int iter, int 
 }
 
 // python hook function
-int* frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
+double* frost(int temp, int humidity, int len, int iters, int pwid, double bias, int reduxInd, double reduxPara){
     len += 16 - (len%16); // Rounds length up to closest multiple of 16 (this is for box counting) 
     AHUM = len*len*humidity;
 
@@ -441,11 +443,11 @@ int* frost(int temp, int humidity, int len, int iters, int pwid, double bias, in
     // regression function
     LinearReg lireg[2];
 
-    int* res = iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara, Boxes, boxNum);
+    double* res = iterfreeze(plate, temp, humidity, len, iters, pwid, bias, reduxInd, reduxPara, Boxes, boxNum);
     
     // boxCount(plate, len, Boxes, boxNum);
     // BoxLinearReg(lireg, 2, Boxes, boxNum);
-    printf("\nBox-counting Dimensions:\n\tNonwet: %f\n\tFrozen: %f\n", lireg[0].b, lireg[1].b);
+    printf("\nBox-counting Dimensions:\n\tNonwet: %f\n\tFrozen: %f\n", res[iters-1], res[2*iters-1]);
     freeplate(plate, len);
     return res;
 }
@@ -473,7 +475,7 @@ int main(int argc, char**argv){
     // prstate(plate, len); 
 
     // freeplate(plate, len);
-    frost(-15, 65, 200, 100, 2, 0.6, 0, 0.3);
+    frost(-15, 57, 200, 100, 2, 0.6, 0, 0.3);
     return 0;
 }
 
