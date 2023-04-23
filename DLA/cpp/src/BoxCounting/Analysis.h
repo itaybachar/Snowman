@@ -1,6 +1,7 @@
 #pragma once
+#include <vector>
 
 namespace AnalysisTools
 {
-    float CalculateFractalDimension(int **data, int gridSize);
+    double CalculateFractalDimension(int **data, int gridSize);
 };

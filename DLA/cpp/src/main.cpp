@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     }
 
     // Initialize the Experiment
-    Experiment dla(humidity, A, gridSize);
+    Experiment dla(humidity, A, gridSize,15);
 
     // Run DLA
     std::cout << "Simulation Started" << std::endl;
@@ -46,14 +46,14 @@ int main(int argc, char *argv[])
 extern "C" {
 	__declspec(dllexport) int SimulateFrost(double humidity, double A, int gridSize, int maxFrozenSites, int snapshotInterval)
 	{
-		Experiment dla(humidity, A, gridSize);
+		Experiment dla(humidity, A, gridSize,15);
 		dla.Run(maxFrozenSites, snapshotInterval);
 		return 0;
 	}
 
-	__declspec(dllexport) int SimulateFrostPro(double humidity, double A, int gridSize, int maxFrozenSites, int snapshotInterval, int nuclei[], int nucleusCount)
+	__declspec(dllexport) int SimulateFrostPro(double humidity, double A, int gridSize, int maxFrozenSites, int snapshotInterval, int nuclei[], int nucleusCount, int spawnRadius)
 	{
-		Experiment dla(humidity, A, gridSize);
+		Experiment dla(humidity, A, gridSize, spawnRadius);
 		dla.Run(maxFrozenSites, snapshotInterval,nuclei,nucleusCount);
 		return 0;
 	}
