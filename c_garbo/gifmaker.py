@@ -40,11 +40,11 @@ def frost(temp, humidity, len, iters, pwid, bias, reduxind, reduxPara):
 
 if __name__ == "__main__":
     temp = -15 # Celsius
-    humidity = 52 # humidity out of 255
+    humidity = 72 # humidity out of 255
     len = 200 # Creates len by len square array
-    iters = 220 # numebr of iterations to do
+    iters = 150 # numebr of iterations to do
     pwid = 2 # pixel width, makes teh image have more pixels so its easier to see
-    bias = 0.5 # bias for running the random function
+    bias = 0.4 # bias for running the random function
     reduxFunc = 0 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear) 
     reduxPara = 0.3
     
@@ -65,4 +65,4 @@ if __name__ == "__main__":
     plt.xlabel('Current Iteration')
     plt.ylabel('Box Dimension')
     plt.legend()
-    plt.show()
+    plt.savefig("Snowman/c_garbo/boxDimPlot.png")

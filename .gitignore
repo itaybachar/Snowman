@@ -1,7 +1,8 @@
 # ignore all exe files
 *.exe
-# ignore bitmaps
+# ignore images
 *.bmp
+*.png
 # ignore shared libraries 
 *.so
 *.gif
