@@ -40,13 +40,13 @@ def frost(temp, humidity, len, iters, pwid, bias, reduxind, reduxPara):
 
 if __name__ == "__main__":
     temp = -15 # Celsius
-    humidity = 72 # humidity out of 255
+    humidity = 90 # humidity out of 255 [integer]
     len = 200 # Creates len by len square array
-    iters = 150 # numebr of iterations to do
+    iters = 120 # numebr of iterations to do
     pwid = 2 # pixel width, makes teh image have more pixels so its easier to see
     bias = 0.4 # bias for running the random function
-    reduxFunc = 0 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear) 
-    reduxPara = 0.3
+    reduxFunc = 3 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear), 3 -> impulse reduxPara% at iter 25
+    reduxPara = 2.0
     
     # The C code returns a pointer to an array of the box dimensions for every single iteration
     # of the calcultion including both frozen and dry node (nonwetDim) and just frozen nodes (frozDim)
@@ -64,5 +64,6 @@ if __name__ == "__main__":
     plt.plot(range(iters), frozDim, color='blue', label='Frozen Box Dimension')
     plt.xlabel('Current Iteration')
     plt.ylabel('Box Dimension')
+    plt.title(f"Box Dimension for {round(humidity/2.55, 1)}% Humidity")
     plt.legend()
     plt.savefig("Snowman/c_garbo/boxDimPlot.png")

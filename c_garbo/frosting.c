@@ -61,8 +61,12 @@ double linearGenHumidity(int iter, double reduxPara){
     return -(reduxPara*iter)/100.0;
 }
 
+double impulseHumdity(int iter, double reduxPara){
+    return (iter > 25)?-reduxPara:0.0;
+}
+
 // Array of function pointers to the above humidty reduction formulas to simplify fluFreeze function
-double (*humReduce[])(int, double) = {&constHumidity, &linearCentHumidty, &linearGenHumidity};
+double (*humReduce[])(int, double) = {&constHumidity, &linearCentHumidty, &linearGenHumidity, &impulseHumdity};
 
 
 // prints given Frode
