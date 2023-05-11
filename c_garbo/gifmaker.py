@@ -1,5 +1,6 @@
 import os, glob
 import moviepy.editor as mp
+import matplotlib.pyplot as plt
 from PIL import Image
 from ctypes import *
 from tqdm import tqdm
@@ -33,22 +34,36 @@ def delpictemp():
 
 def frost(temp, humidity, len, iters, pwid, bias, reduxind, reduxPara):
     fr = CDLL("./Snowman/c_garbo/frosting.so")
-    fr.frost.argtypes = (c_int, c_int, c_int, c_int, c_int, c_double)
-    fr.frost.restype = POINTER(c_int)
-    fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias), c_int(reduxind), c_double(reduxPara))
+    fr.frost.argtypes = (c_int, c_int, c_int, c_int, c_int, c_double, c_int, c_double)
+    fr.frost.restype = POINTER(c_double)
+    return fr.frost(c_int(temp), c_int(humidity), c_int(len), c_int(iters), c_int(pwid), c_double(bias), c_int(reduxind), c_double(reduxPara))
 
 if __name__ == "__main__":
     temp = -15 # Celsius
-    humidity = 57 # humidity out of 255
+    humidity = 90 # humidity out of 255 [integer]
     len = 200 # Creates len by len square array
-    iters = 200 # numebr of iterations to do
+    iters = 120 # numebr of iterations to do
     pwid = 2 # pixel width, makes teh image have more pixels so its easier to see
-    bias = 0.5 # bias for running the random function
-    reduxFunc = 0 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear) 
-    reduxPara = 0.3
+    bias = 0.4 # bias for running the random function
+    reduxFunc = 3 # 0 -> No reduction, 1 -> 1% per 100 iterations (linear), 2 -> reduxPara% per 100 iterations (linear), 3 -> impulse reduxPara% at iter 25
+    reduxPara = 2.0
     
-    boxDimensions = POINTER(c_int) 
+    # The C code returns a pointer to an array of the box dimensions for every single iteration
+    # of the calcultion including both frozen and dry node (nonwetDim) and just frozen nodes (frozDim)
+    # First half of the array are the nonwet values, second half are the frozen values
+    boxDimensions = POINTER(c_double) 
     boxDimensions = frost(temp, humidity, len, iters, pwid, bias, reduxFunc, reduxPara)
+    nonwetDim = boxDimensions[:iters]
+    frozDim = boxDimensions[iters:2*iters]
+
     convertToPng()
     make_gif("frAni", iters)
     delpictemp()
+
+    plt.plot(range(iters), nonwetDim, color='black', label='Nonwet Box Dimension')
+    plt.plot(range(iters), frozDim, color='blue', label='Frozen Box Dimension')
+    plt.xlabel('Current Iteration')
+    plt.ylabel('Box Dimension')
+    plt.title(f"Box Dimension for {round(humidity/2.55, 1)}% Humidity")
+    plt.legend()
+    plt.savefig("Snowman/c_garbo/boxDimPlot.png")
