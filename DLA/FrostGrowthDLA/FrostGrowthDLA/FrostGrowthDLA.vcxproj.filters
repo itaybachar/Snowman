@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\cpp\src\bmp\libbmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cpp\src\BoxCounting\Analysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cpp\src\bmp\libbmp.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\cpp\src\util\Vec2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cpp\src\BoxCounting\Analysis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

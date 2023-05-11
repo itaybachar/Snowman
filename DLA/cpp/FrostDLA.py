@@ -11,7 +11,7 @@ def make_gif(name):
     frames = [Image.open(image) for image in glob.glob("./temp/*.png")]
     frame_one = frames[0]
     frame_one.save(f"./out_gif/{name}.gif", format="GIF", append_images=frames,
-               save_all=True, duration=500, loop=0)
+               save_all=True, duration=100, loop=0)
     clip = mp.VideoFileClip(f"./out_gif/{name}.gif")
     clip.write_videofile(f"./out_gif/{name}.mp4")
 
@@ -70,22 +70,25 @@ if __name__ == "__main__":
     #Clean out temp folder in case its not clean
     delpictempAll()
 
-    humidity = 0.9
+    humidity = 0.5
     A = 3
     gridSize = 512
-    maxFrozenSites = 50000
+    maxFrozenSites = 200000
     snapshotInterval = 750
 
-    nucleusCount = 4
-    nucleusRadius = 15
+    nucleusCount = 1
+    nucleusRadius =100
 
     nucleationSites = generateRandomNucleationSites(nucleusCount,nucleusRadius,gridSize)
     #nucleationSites = [203,230,259,299,292,276,295,270]
     nucleationSites = [int(gridSize/2), int(gridSize/2)]
+    nucleationSites = [180,256,320,100,330,250]#med humidity nucleus
+   # nucleationSites = [180,256,430,10,482,500]#high humidity nucleus
+
     frostPro(humidity,A,gridSize,maxFrozenSites,snapshotInterval,nucleationSites,int(len(nucleationSites)/2), nucleusRadius*2)
     #frost(humidity,A,gridSize,maxFrozenSites,snapshotInterval)
     convertToPng()
-    make_gif("sim_{}_{}_{}".format(humidity,A,nucleusCount))
+    make_gif("sim_{}_{}_{}".format(humidity,A,int(len(nucleationSites)/2)))
     delpictemp()
 
 

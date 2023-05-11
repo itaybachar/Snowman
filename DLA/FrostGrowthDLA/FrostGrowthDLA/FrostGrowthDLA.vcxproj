@@ -124,12 +124,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\cpp\src\bmp\libbmp.cpp" />
+    <ClCompile Include="..\..\cpp\src\BoxCounting\Analysis.cpp" />
     <ClCompile Include="..\..\cpp\src\Experiment\Experiment.cpp" />
     <ClCompile Include="..\..\cpp\src\main.cpp" />
     <ClCompile Include="..\..\cpp\src\util\Helper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cpp\src\bmp\libbmp.h" />
+    <ClInclude Include="..\..\cpp\src\BoxCounting\Analysis.h" />
     <ClInclude Include="..\..\cpp\src\Experiment\Experiment.h" />
     <ClInclude Include="..\..\cpp\src\util\Helper.h" />
     <ClInclude Include="..\..\cpp\src\util\Vec2.h" />
